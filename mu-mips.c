@@ -306,7 +306,16 @@ void load_program() {
 void handle_instruction()
 {
 	int instruction;
-	instruction = mem_read_32(currentstate.PC);
+	instruction = mem_read_32(CURRENT_STATE.PC);
+	int immediate;
+	int rt;
+	int rs;
+	if(instruction >> 26 == 0xF){
+		rt = (instruction >> 16) & 0x1F;
+		rs = (instruction >> 16) & 0x1F;
+		immediate = (instruction << 16) & 0xFFFFFFFF;
+		NEXT_STATE.REGS[rt] = immediate;
+	}
 	/*IMPLEMENT THIS*/
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
 }

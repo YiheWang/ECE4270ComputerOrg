@@ -1,0 +1,7 @@
+./mu-mips ../inputs/test1.in
+rdump
+
+mdump 0x10010000 0x10010030
+
+
+run 1 
