@@ -312,6 +312,8 @@ void handle_instruction()
 	int rs;
 	int funct;
 	int op;
+	int64_t t1;
+	uint64_t t2;
 	
 	op = instruction >> 26;
 	if(op == 0x0){
@@ -324,47 +326,62 @@ void handle_instruction()
 		swtich(funct){
 			case 0x20:
 				//instruction ADD, bits 0 - 5: 10 0000
-				
+				NEXT_STATE.REGS[rd] = (int)CURRENT_STATE.REGS[rs] + (int)CURRENT_STATE.REGS[rt];
+				printf("Instruction ADD!\n");
 				break;
 				
 			case 0x21:
 				//instruction ADDU, bits 0 - 5: 10 0001
-				
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+				printf("Instruction ADDU!\n");
 				break;
 			
 			case 0x24:
 				//instruction AND, bits 0 - 5: 10 0100
-				
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] & CURRENT_STATE.REGS[rt];
+				printf("Instruction AND!\n");
 				break;
 				
 			case 0x1A:
 				//instruction DIV, bits 0 - 5: 01 1010
-				
+				NEXT_STATE.LO = (int)CURRENT_STATE.REGS[rs] / (int)CURRENT_STATE.REGS[rt]; // div
+				NEXT_STATE.HI = (int)CURRENT_STATE.REGS[rs] % (int)CURRENT_STATE.REGS[rt]; // mod
+				printf("Instruction DIV!\n");
 				break;
 				
 			case 0x1B:
 				//instruction DIVU, bits 0 - 5: 01 1011
-				
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt]; // div
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt]; // mod
+				printf("Instruction DIVU!\n");
 				break;
 			
 			case 0x18:
 				//instruction MULT, bits 0 - 5: 01 1000
-				
+				t1 = (int64_t)CURRENT_STATE.REGS[rs] * (int64_t)CURRENT_STATE.REGS[rt]; // multiple
+				NEXT_STATE.LO = t1 & 0x0000FFFF;
+				NEXT_STATE.HI = (t1 >> 32) & 0x0000FFFF;
+				printf("Instruction MULT!\n");
 				break;
 			
 			case 0x19:
 				//instruction MULTU, bits 0 - 5: 01 1001
-				
+				t2 = (uint64_t)CURRENT_STATE.REGS[rs] * (uint64_t)CURRENT_STATE.REGS[rt]; // multiple unsigned
+				NEXT_STATE.LO = t2 & 0x0000FFFF;
+				NEXT_STATE.HI = (t2 >> 32) & 0x0000FFFF;
+				printf("Instruction MULTU!\n");
 				break;
 			
 			case 0x22:
 				//instruction SUB, bits 0 - 5: 10 0010
-				
+				NEXT_STATE.REGS[rd] = (int)CURRENT_STATE.REGS[rs] - (int)CURRENT_STATE.REGS[rt];
+				printf("Instruction SUB!\n");
 				break;
 			
 			case 0x23:
 				//instruction SUBU, bits 0 - 5: 10 0011
-				
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
+				printf("Instruction SUBU!\n");
 				break;
 		}
 		
@@ -380,12 +397,28 @@ void handle_instruction()
 		switch(op){
 			case 0x08:
 			//instruction ADDI, bits 26 - 31: 00 1000
-			
+				if(((instruction >> 15) & 0x1) == 0x1){
+					immediate = immediate | 0xFFFF0000; 
+					// bits 0 - 15 unchanged, bits 16 - 31 are all 1
+					NEXT_STATE.REGS[rt] = (int)CURRENT_STATE.REGS[rs] + immediate;
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					NEXT_STATE.REGS[rt] = (int)CURRENT_STATE.REGS[rs] + immediate;
+				}
+				printf("Instruction ADDI!\n");
 				break;
 			
 			case 0x09:
 			// instrucntion ADDIU, bits 26 - 31: 00 1001
-			
+				if(((instruction >> 15) & 0x1) == 0x1){
+					immediate = immediate | 0xFFFF0000; 
+					// bits 0 - 15 unchanged, bits 16 - 31 are all 1
+					NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
+				}
+				printf("Instruction ADDIU!\n");
 				break;
 		}
 		
