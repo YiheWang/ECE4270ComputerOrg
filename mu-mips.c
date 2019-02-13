@@ -310,12 +310,86 @@ void handle_instruction()
 	int immediate;
 	int rt;
 	int rs;
-	if(instruction >> 26 == 0xF){
-		rt = (instruction >> 16) & 0x1F;
-		rs = (instruction >> 16) & 0x1F;
-		immediate = (instruction << 16) & 0xFFFFFFFF;
-		NEXT_STATE.REGS[rt] = immediate;
+	int funct;
+	int op;
+	
+	op = instruction >> 26;
+	if(op == 0x0){
+		// Register is R-type 
+		rd = (instruction >> 11) & 0x1F; // bits 11 - 15
+		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
+		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		funct = instruction & 0x3F;   //bits 0 - 5   
+		
+		swtich(funct){
+			case 0x20:
+				//instruction ADD, bits 0 - 5: 10 0000
+				
+				break;
+				
+			case 0x21:
+				//instruction ADDU, bits 0 - 5: 10 0001
+				
+				break;
+			
+			case 0x24:
+				//instruction AND, bits 0 - 5: 10 0100
+				
+				break;
+				
+			case 0x1A:
+				//instruction DIV, bits 0 - 5: 01 1010
+				
+				break;
+				
+			case 0x1B:
+				//instruction DIVU, bits 0 - 5: 01 1011
+				
+				break;
+			
+			case 0x18:
+				//instruction MULT, bits 0 - 5: 01 1000
+				
+				break;
+			
+			case 0x19:
+				//instruction MULTU, bits 0 - 5: 01 1001
+				
+				break;
+			
+			case 0x22:
+				//instruction SUB, bits 0 - 5: 10 0010
+				
+				break;
+			
+			case 0x23:
+				//instruction SUBU, bits 0 - 5: 10 0011
+				
+				break;
+		}
+		
+		//NEXT_STATE.REGS[rt] = immediate;
 	}
+	else {
+		// Register is J-type or I-type
+		//immediate = (instruction << 16) & 0xFFFFFFFF;
+		immediate = instruction & 0xFFFF; // bits 0 - 15;
+		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
+		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		
+		switch(op){
+			case 0x08:
+			//instruction ADDI, bits 26 - 31: 00 1000
+			
+				break;
+			
+			case 0x09:
+			// instrucntion ADDIU, bits 26 - 31: 00 1001
+			
+				break;
+		}
+		
+	} 
 	/*IMPLEMENT THIS*/
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
 }
