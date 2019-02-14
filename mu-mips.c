@@ -308,8 +308,10 @@ void handle_instruction()
 	int instruction;
 	instruction = mem_read_32(CURRENT_STATE.PC);
 	int immediate;
+	int offset;
 	int rt;
 	int rs;
+	int base;
 	int funct;
 	int op;
 	int64_t t1;
@@ -326,7 +328,7 @@ void handle_instruction()
 		swtich(funct){
 			case 0x20:
 				//instruction ADD, bits 0 - 5: 10 0000
-				NEXT_STATE.REGS[rd] = (int)CURRENT_STATE.REGS[rs] + (int)CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
 				printf("Instruction ADD!\n");
 				break;
 				
@@ -344,8 +346,8 @@ void handle_instruction()
 				
 			case 0x1A:
 				//instruction DIV, bits 0 - 5: 01 1010
-				NEXT_STATE.LO = (int)CURRENT_STATE.REGS[rs] / (int)CURRENT_STATE.REGS[rt]; // div
-				NEXT_STATE.HI = (int)CURRENT_STATE.REGS[rs] % (int)CURRENT_STATE.REGS[rt]; // mod
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rs] / CURRENT_STATE.REGS[rt]; // div
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rs] % CURRENT_STATE.REGS[rt]; // mod
 				printf("Instruction DIV!\n");
 				break;
 				
@@ -366,7 +368,7 @@ void handle_instruction()
 			
 			case 0x19:
 				//instruction MULTU, bits 0 - 5: 01 1001
-				t2 = (uint64_t)CURRENT_STATE.REGS[rs] * (uint64_t)CURRENT_STATE.REGS[rt]; // multiple unsigned
+				t2 = (int64_t)CURRENT_STATE.REGS[rs] * (int64_t)CURRENT_STATE.REGS[rt]; // multiple unsigned
 				NEXT_STATE.LO = t2 & 0x0000FFFF;
 				NEXT_STATE.HI = (t2 >> 32) & 0x0000FFFF;
 				printf("Instruction MULTU!\n");
@@ -374,7 +376,7 @@ void handle_instruction()
 			
 			case 0x22:
 				//instruction SUB, bits 0 - 5: 10 0010
-				NEXT_STATE.REGS[rd] = (int)CURRENT_STATE.REGS[rs] - (int)CURRENT_STATE.REGS[rt];
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
 				printf("Instruction SUB!\n");
 				break;
 			
@@ -383,16 +385,68 @@ void handle_instruction()
 				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
 				printf("Instruction SUBU!\n");
 				break;
+				
+			case 0x10:
+				//instruction MFHI, bits 0 - 5: 01 0000
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.HI;
+				printf("Instruction MFHI!\n");
+				break;
+				
+			case 0x12:
+				//instruction MFLO, bits 0 - 5: 01 0000
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.LO;
+				printf("Instruction MFLO!\n");
+				break;
+				
+			case 0x11:
+				//instruction MTHI, bits 0 - 5: 01 0000
+				NEXT_STATE.HI = CURRENT_STATE.REGS[rs];
+				printf("Instruction MTHI!\n");
+				break;
+				
+			case 0x13:
+				//instruction MTLO, bits 0 - 5: 01 0000
+				NEXT_STATE.LO = CURRENT_STATE.REGS[rs];
+				printf("Instruction MTLO!\n");
+				break;
 		}
 		
-		//NEXT_STATE.REGS[rt] = immediate;
+	}
+	
+	// for BGEZ etc.
+	else if(op == 0x1){
+		offset = instruction & 0xFFFF; // bits 0 - 15;
+		funct = (instruction >> 16) & 0x1F; // bits 16 - 20 
+		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		
+		swtich(funct){
+			case 0x1:
+			// instruction BGEZ, bits 16 - 20: 00001
+				uint32_t target = offset << 2;
+				if(((instruction >> 15) & 0x1) == 0x1){
+					target = target | 0xFFFC0000; 
+					// bits 2 - 17 unchanged, bits 16 - 31 are all 1
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					target = target & 0x00003FFC; 
+				}
+				
+				//bit 31 equal to 0
+				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x0)){
+					NEXT_STATE.PC = CURRENT_STATE.PC + target
+				}
+				printf("Instruction BGEZ!\n");
+				break;
+		}
 	}
 	else {
 		// Register is J-type or I-type
 		//immediate = (instruction << 16) & 0xFFFFFFFF;
 		immediate = instruction & 0xFFFF; // bits 0 - 15;
+		offset = instruction & 0xFFFF; // bits 0 - 15;
 		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		base = (instruction >> 21) & 0x1F; // bits 21 - 25
 		
 		switch(op){
 			case 0x08:
@@ -400,10 +454,11 @@ void handle_instruction()
 				if(((instruction >> 15) & 0x1) == 0x1){
 					immediate = immediate | 0xFFFF0000; 
 					// bits 0 - 15 unchanged, bits 16 - 31 are all 1
-					NEXT_STATE.REGS[rt] = (int)CURRENT_STATE.REGS[rs] + immediate;
+					NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
 				}
 				else if(((instruction >> 15) & 0x1) == 0x0){
-					NEXT_STATE.REGS[rt] = (int)CURRENT_STATE.REGS[rs] + immediate;
+					immediate = immediate & 0x0000FFFF; 
+					NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
 				}
 				printf("Instruction ADDI!\n");
 				break;
@@ -416,9 +471,112 @@ void handle_instruction()
 					NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
 				}
 				else if(((instruction >> 15) & 0x1) == 0x0){
+					immediate = immediate & 0x0000FFFF; 
 					NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] + immediate;
 				}
 				printf("Instruction ADDIU!\n");
+				break;
+				
+			/*case 0x29:
+			// instrucntion SH, bits 26 - 31: 10 1001
+				int vitual_ad;
+				int halfWord = CURRENT_STATE.REGS[rt] & 0xFF; // last 16 bits 
+				if(((instruction >> 15) & 0x1) == 0x1){
+					offset = offset | 0xFFFF0000; 
+					// bits 0 - 15 unchanged, bits 16 - 31 are all 1
+					virtual_ad = CURRENT_STATE.REGS[base] + offset;
+					
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					virtual_ad = CURRENT_STATE.REGS[base] + offset;
+				}
+				printf("Instruction SH!\n");*/
+			
+			// may have issue 
+			case 0x04:
+			// instrucntion BEQ, bits 26 - 31: 00 0100
+				uint32_t target = offset << 2;
+				if(((instruction >> 15) & 0x1) == 0x1){
+					target = target | 0xFFFC0000; 
+					// bits 2 - 17 unchanged, bits 18 - 31 are all 1
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					target = target & 0x00003FFC; 
+				}
+				
+				if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]){
+					NEXT_STATE.PC = CURRENT_STATE.PC + target
+				}
+				printf("Instruction BEQ!\n");
+				break;
+				
+			case 0x05:
+			// instrucntion BNE, bits 26 - 31: 00 0101
+				uint32_t target = offset << 2;
+				if(((instruction >> 15) & 0x1) == 0x1){
+					target = target | 0xFFFC0000; 
+					// bits 2 - 17 unchanged, bits 18 - 31 are all 1
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					target = target & 0x00003FFC; 
+				}
+				
+				if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]){
+					NEXT_STATE.PC = CURRENT_STATE.PC + target
+				}
+				printf("Instruction BNE!\n");
+				break;
+				
+			case 0x06:
+			// instrucntion BLEZ, bits 26 - 31: 00 0110
+				uint32_t target = offset << 2;
+				if(((instruction >> 15) & 0x1) == 0x1){
+					target = target | 0xFFFC0000; 
+					// bits 2 - 17 unchanged, bits 18 - 31 are all 1
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					target = target & 0x00003FFC; 
+				}
+				
+				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x80000000) || (CURRENT_STATE.REGS[rs] == 0x0)){
+					NEXT_STATE.PC = CURRENT_STATE.PC + target
+				}
+				printf("Instruction BLEZ!\n");
+				break;
+				
+			case 0x01:
+			// instrucntion BLTZ, bits 26 - 31: 00 0001
+				uint32_t target = offset << 2;
+				if(((instruction >> 15) & 0x1) == 0x1){
+					target = target | 0xFFFC0000; 
+					// bits 2 - 17 unchanged, bits 16 - 31 are all 1
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					target = target & 0x00003FFC; 
+				}
+				
+				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x80000000)){
+					NEXT_STATE.PC = CURRENT_STATE.PC + target
+				}
+				printf("Instruction BLTZ!\n");
+				break;
+				
+			case 0x07:
+			// instrucntion BGTZ, bits 26 - 31: 00 0111
+				uint32_t target = offset << 2;
+				if(((instruction >> 15) & 0x1) == 0x1){
+					target = target | 0xFFFC0000; 
+					// bits 2 - 17 unchanged, bits 16 - 31 are all 1
+				}
+				else if(((instruction >> 15) & 0x1) == 0x0){
+					target = target & 0x00003FFC; 
+				}
+				
+				//bit 31 equal to 0  and other bits not all equal to 0
+				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x0) && (CURRENT_STATE.REGS[rs] != 0x0)){
+					NEXT_STATE.PC = CURRENT_STATE.PC + target
+				}
+				printf("Instruction BGTZ!\n");
 				break;
 		}
 		
