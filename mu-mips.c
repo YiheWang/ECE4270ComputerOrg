@@ -9,6 +9,15 @@
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
 /***************************************************************/
+
+int sign_extention(int bit)  //sign extention function
+{
+	if((bit & 0x00008000) == 0x00008000)
+		bit |= 0xffff0000;   // negative, fill with 1 
+	else
+		bit &= 0x0000ffff;   //positive fill with 0, keep latter 16 bits unchange
+}
+
 void help() {        
 	printf("------------------------------------------------------------------\n\n");
 	printf("\t**********MU-MIPS Help MENU**********\n\n");
@@ -316,6 +325,7 @@ void handle_instruction()
 	int op;
 	int64_t t1;
 	uint64_t t2;
+	int sa;// ???
 	
 	op = instruction >> 26;
 	if(op == 0x0){
@@ -324,6 +334,7 @@ void handle_instruction()
 		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
 		funct = instruction & 0x3F;   //bits 0 - 5   
+		sa = (instruction >> 6) & 0x1F; //???
 		
 		swtich(funct){
 			case 0x20:
@@ -342,6 +353,24 @@ void handle_instruction()
 				//instruction AND, bits 0 - 5: 10 0100
 				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] & CURRENT_STATE.REGS[rt];
 				printf("Instruction AND!\n");
+				break;
+				
+			case 0x25:
+				//instruction OR, bits 0 - 5: 10 0101
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt];
+				printf("Instruction OR!\n");
+				break;
+				
+			case 0x26:
+				//instruction XOR, bits 0 - 5: 10 0110
+				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] ^ CURRENT_STATE.REGS[rt];
+				printf("Instruction XOR!\n");
+				break;
+				
+			case 0x27:
+				//instruction NOR, bits 0 - 5: 10 0111
+				NEXT_STATE.REGS[rd] = ~(CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt]);
+				printf("Instruction NOR!\n");
 				break;
 				
 			case 0x1A:
@@ -409,11 +438,20 @@ void handle_instruction()
 				NEXT_STATE.LO = CURRENT_STATE.REGS[rs];
 				printf("Instruction MTLO!\n");
 				break;
+				
+			case 0x2A:
+				//instruction SLT, bits 0 - 5: 10 1010
+				if(CURRENT_STATE.REGS[rs] < CURRENT_STATE.REGS[rt])
+					NEXT_STATE.REGS[rd] = 0x00000001;
+				else
+					NEXT_STATE.REGS[rd] = 0x00000000;
+				printf("Instruction SLT!\n");
+				break;
 		}
 		
 	}
 	
-	// for BGEZ etc.
+	// for BGEZ  only .
 	else if(op == 0x1){
 		offset = instruction & 0xFFFF; // bits 0 - 15;
 		funct = (instruction >> 16) & 0x1F; // bits 16 - 20 
@@ -439,8 +477,9 @@ void handle_instruction()
 				break;
 		}
 	}
+	
+	// Register is J-type or I-type
 	else {
-		// Register is J-type or I-type
 		//immediate = (instruction << 16) & 0xFFFFFFFF;
 		immediate = instruction & 0xFFFF; // bits 0 - 15;
 		offset = instruction & 0xFFFF; // bits 0 - 15;
@@ -477,20 +516,57 @@ void handle_instruction()
 				printf("Instruction ADDIU!\n");
 				break;
 				
-			/*case 0x29:
-			// instrucntion SH, bits 26 - 31: 10 1001
-				int vitual_ad;
-				int halfWord = CURRENT_STATE.REGS[rt] & 0xFF; // last 16 bits 
-				if(((instruction >> 15) & 0x1) == 0x1){
-					offset = offset | 0xFFFF0000; 
-					// bits 0 - 15 unchanged, bits 16 - 31 are all 1
-					virtual_ad = CURRENT_STATE.REGS[base] + offset;
-					
-				}
-				else if(((instruction >> 15) & 0x1) == 0x0){
-					virtual_ad = CURRENT_STATE.REGS[base] + offset;
-				}
-				printf("Instruction SH!\n");*/
+			case 0xC:
+			// instrucntion ANDI, bits 26 - 31: 00 1100
+				int temp = instruction & 0xFFFF;
+				CURRENT_STATE.REGS[rs] = CURRENT_STATE.REGS[rs] & 0xFFFF;
+				NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & temp;
+				printf("Instruction ANDI!\n");
+				break;
+				
+			case 0xF:
+			// instrucntion LUI, bits 26 - 31: 00 1111
+				int temp = instruction & 0xFFFF;
+				CURRENT_STATE.REGS[rs] = CURRENT_STATE.REGS[rs] & 0xFFFF;
+				NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & temp;
+				printf("Instruction LUI!\n");
+				break;
+				
+			case 0x20: 
+			//LB 100000
+				offset = sign_extention(offset); 
+				//temp = ((offset << 16) + offset) & 0xffffffff;
+				//contents of the byte at memory location 
+				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt] & 0x000000FF);
+				NEXT_STATE.PC = CURRENT_STATE.PC + 2;
+				printf("Instruction LB!\n");
+				break;
+				
+			case 0x21:
+			//LH 100001
+				offset = sign_extention(offset); 
+				//temp = ((offset << 16) + offset) & 0xffffffff;	
+				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);	
+				NEXT_STATE.PC = CURRENT_STATE.PC + 8;
+				printf("Instruction LH!\n");
+				break;
+				
+			case 0x23:
+			//SW 100011
+				offset = sign_extention(offset);
+				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);	
+				NEXT_STATE.PC = CURRENT_STATE.PC + 4;
+				printf("Instruction SW!\n");
+				break;
+				
+			 case 0x29:
+			 //SH 
+				offset = sign_extention(offset);
+				//the least half word store
+				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt] & 0x0000ffff); 
+				NEXT_STATE.PC = CURRENT_STATE.PC + 4;
+				printf("Instruction SH!\n");
+				break;		
 			
 			// may have issue 
 			case 0x04:
@@ -578,6 +654,13 @@ void handle_instruction()
 				}
 				printf("Instruction BGTZ!\n");
 				break;
+				
+			case 0x2: //J jump 000010  ----------------------
+				target = instruction & 0x03ffffff;
+				target = target << 2;
+				NEXT_STATE.PC = (NEXT_STATE.PC & 0xf0000000) + target;
+				printf("Instruction J!\n");
+				break; 
 		}
 		
 	} 
@@ -615,6 +698,205 @@ void print_program(){
 /************************************************************/
 void print_instruction(uint32_t addr){
 	/*IMPLEMENT THIS*/
+	int instruction = mem_read_32(addr);
+	int immediate;
+	int offset;
+	int rt;
+	int rs;
+	int base;
+	int funct;
+	int op;
+	
+	op = instruction >> 26;
+	if(op == 0x0){
+		// Register is R-type 
+		rd = (instruction >> 11) & 0x1F; // bits 11 - 15
+		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
+		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		funct = instruction & 0x3F;   //bits 0 - 5   
+		
+		swtich(funct){
+			case 0x20:
+				printf("Instruction ADD!\n");
+				break;
+				
+			case 0x21:
+				printf("Instruction ADDU!\n");
+				break;
+			
+			case 0x24:
+				//instruction AND, bits 0 - 5: 10 0100
+				printf("Instruction AND!\n");
+				break;
+				
+			case 0x25:
+				//instruction OR, bits 0 - 5: 10 0101
+				printf("Instruction OR!\n");
+				break;
+				
+			case 0x26:
+				//instruction XOR, bits 0 - 5: 10 0110
+				printf("Instruction XOR!\n");
+				break;
+				
+			case 0x27:
+				//instruction NOR, bits 0 - 5: 10 0111
+				printf("Instruction NOR!\n");
+				break;
+				
+			case 0x1A:
+				//instruction DIV, bits 0 - 5: 01 1010
+				printf("Instruction DIV!\n");
+				break;
+				
+			case 0x1B:
+				//instruction DIVU, bits 0 - 5: 01 1011
+				printf("Instruction DIVU!\n");
+				break;
+			
+			case 0x18:
+				//instruction MULT, bits 0 - 5: 01 1000
+				printf("Instruction MULT!\n");
+				break;
+			
+			case 0x19:
+				//instruction MULTU, bits 0 - 5: 01 1001
+				printf("Instruction MULTU!\n");
+				break;
+			
+			case 0x22:
+				//instruction SUB, bits 0 - 5: 10 0010
+				printf("Instruction SUB!\n");
+				break;
+			
+			case 0x23:
+				//instruction SUBU, bits 0 - 5: 10 0011
+				printf("Instruction SUBU!\n");
+				break;
+				
+			case 0x10:
+				//instruction MFHI, bits 0 - 5: 01 0000
+				printf("Instruction MFHI!\n");
+				break;
+				
+			case 0x12:
+				//instruction MFLO, bits 0 - 5: 01 0000
+				printf("Instruction MFLO!\n");
+				break;
+				
+			case 0x11:
+				//instruction MTHI, bits 0 - 5: 01 0000
+				printf("Instruction MTHI!\n");
+				break;
+				
+			case 0x13:
+				//instruction MTLO, bits 0 - 5: 01 0000
+				printf("Instruction MTLO!\n");
+				break;
+				
+			case 0x2A:
+				//instruction SLT, bits 0 - 5: 10 1010
+				printf("Instruction SLT!\n");
+				break;
+		}
+		
+	}
+	
+	// for BGEZ  only .
+	else if(op == 0x1){
+		offset = instruction & 0xFFFF; // bits 0 - 15;
+		funct = (instruction >> 16) & 0x1F; // bits 16 - 20 
+		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		
+		swtich(funct){
+			case 0x1:
+				printf("Instruction BGEZ!\n");
+				break;
+		}
+	}
+	
+	// Register is J-type or I-type
+	else {
+		//immediate = (instruction << 16) & 0xFFFFFFFF;
+		immediate = instruction & 0xFFFF; // bits 0 - 15;
+		offset = instruction & 0xFFFF; // bits 0 - 15;
+		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
+		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
+		base = (instruction >> 21) & 0x1F; // bits 21 - 25
+		
+		switch(op){
+			case 0x08:
+			//instruction ADDI, bits 26 - 31: 00 1000
+				printf("Instruction ADDI!\n");
+				break;
+			
+			case 0x09:
+			// instrucntion ADDIU, bits 26 - 31: 00 1001
+				printf("Instruction ADDIU!\n");
+				break;
+				
+			case 0xC:
+			// instrucntion ANDI, bits 26 - 31: 00 1100
+				printf("Instruction ANDI!\n");
+				break;
+				
+			case 0xF:
+			// instrucntion LUI, bits 26 - 31: 00 1111
+				printf("Instruction LUI!\n");
+				break;
+				
+			case 0x20: 
+			//LB 100000
+				printf("Instruction LB!\n");
+				break;
+				
+			case 0x21:
+			//LH 100001
+				printf("Instruction LH!\n");
+				break;
+				
+			case 0x23:
+			//SW 100011
+				printf("Instruction SW!\n");
+				break;
+				
+			 case 0x29:
+			 //SH 
+				printf("Instruction SH!\n");
+				break;		
+			
+			case 0x04:
+			// instrucntion BEQ, bits 26 - 31: 00 0100
+				printf("Instruction BEQ!\n");
+				break;
+				
+			case 0x05:
+			// instrucntion BNE, bits 26 - 31: 00 0101
+				printf("Instruction BNE!\n");
+				break;
+				
+			case 0x06:
+			// instrucntion BLEZ, bits 26 - 31: 00 0110
+				printf("Instruction BLEZ!\n");
+				break;
+				
+			case 0x01:
+			// instrucntion BLTZ, bits 26 - 31: 00 0001
+				printf("Instruction BLTZ!\n");
+				break;
+				
+			case 0x07:
+			// instrucntion BGTZ, bits 26 - 31: 00 0111
+				printf("Instruction BGTZ!\n");
+				break;
+				
+			case 0x2: 
+			//J jump 000010  
+				printf("Instruction J!\n");
+				break; 
+		}
+		
+	} 
 }
 
 /***************************************************************/
