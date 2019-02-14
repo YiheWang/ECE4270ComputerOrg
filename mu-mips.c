@@ -16,6 +16,7 @@ int sign_extention(int bit)  //sign extention function
 		bit |= 0xffff0000;   // negative, fill with 1
 	else
 		bit &= 0x0000ffff;   //positive fill with 0, keep latter 16 bits unchange
+	return bit;
 }
 
 void help() {
@@ -320,12 +321,16 @@ void handle_instruction()
 	int offset;
 	int rt;
 	int rs;
+	int rd;
 	int base;
 	int funct;
 	int op;
 	int64_t t1;
 	uint64_t t2;
-	int sa;// ???
+	int sa;
+	int temp;
+	uint32_t target1;
+	
 
 	op = instruction >> 26;
 	if(op == 0x0){
@@ -336,7 +341,7 @@ void handle_instruction()
 		funct = instruction & 0x3F;   //bits 0 - 5
 		sa = (instruction >> 6) & 0x1F; //???
 
-		swtich(funct){
+		switch(funct){
 			case 0x20:
 				//instruction ADD, bits 0 - 5: 10 0000
 				NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
@@ -455,7 +460,7 @@ void handle_instruction()
 
 			case 0x0:
 				// 31 - 26 000000  ; SLL instruction ; 0-5 000000 ; 0
-				CURRENT_STATE.REGS[rt] << sa;
+				CURRENT_STATE.REGS[rt] = CURRENT_STATE.REGS[rt] << sa;
 				CURRENT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt];
 				break;
 
@@ -463,62 +468,53 @@ void handle_instruction()
 				// 31 - 26 000000  ; SRA instruction ; 0-5 000011 ; 3
 				temp = CURRENT_STATE.REGS[rt] << (32 - sa);
 				temp = temp & 0xffffffff;
-				CURRENT_STATE.REGS[rt] >> sa;
+				CURRENT_STATE.REGS[rt] = CURRENT_STATE.REGS[rt] >> sa;
 				CURRENT_STATE.REGS[rd] = CURRENT_STATE.REGS[rt] & temp;
 				break;
 
 			case 0x9: 
 				//JALR 000011
-				printf("JALR instruction \n");
+				printf("JALR instruction\n");
 				break;
 
 			case 0x8: 
 				//JR 001000
-				printf("JR instruction"\n", );
+				printf("JR instruction\n");
 				break;
 			
-
 		}
-
 	}
-
 	// for BGEZ  only .
 	else if(op == 0x1){
 		offset = instruction & 0xFFFF; // bits 0 - 15;
 		funct = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
-
-		swtich(funct){
-			case 0x1:
-			// instruction BGEZ, bits 16 - 20: 00001
-				uint32_t target = offset << 2;
-				if(((instruction >> 15) & 0x1) == 0x1){
-					target = target | 0xFFFC0000;
-					// bits 2 - 17 unchanged, bits 16 - 31 are all 1
-				}
-				else if(((instruction >> 15) & 0x1) == 0x0){
-					target = target & 0x00003FFC;
-				}
-
-				//bit 31 equal to 0
-				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x0)){
-					NEXT_STATE.PC = CURRENT_STATE.PC + target
-				}
-				printf("Instruction BGEZ!\n");
-				break;
+		// instruction BGEZ, bits 16 - 20: 00001
+		uint32_t target = offset << 2;
+		if(((instruction >> 15) & 0x1) == 0x1){
+			target = target | 0xFFFC0000;
+			// bits 2 - 17 unchanged, bits 16 - 31 are all 1
 		}
-	}
+		else if(((instruction >> 15) & 0x1) == 0x0){
+			target = target & 0x00003FFC;
+		}
 
+		//bit 31 equal to 0
+		if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x0)){
+			NEXT_STATE.PC = CURRENT_STATE.PC + target;
+		}
+		printf("Instruction BGEZ!\n");
+	}
 	// Register is J-type or I-type
 	else {
 		//immediate = (instruction << 16) & 0xFFFFFFFF;
+		rd = (instruction >> 11) & 0x1F; // bits 11 - 15
 		immediate = instruction & 0xFFFF; // bits 0 - 15;
 		offset = instruction & 0xFFFF; // bits 0 - 15;
 		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
 		base = (instruction >> 21) & 0x1F; // bits 21 - 25
 		int target = instruction & 0x03FFFFFF; // bits 0 - 25
-
 		switch(op){
 			case 0x08:
 			//instruction ADDI, bits 26 - 31: 00 1000
@@ -533,7 +529,6 @@ void handle_instruction()
 				}
 				printf("Instruction ADDI!\n");
 				break;
-
 			case 0x09:
 			// instrucntion ADDIU, bits 26 - 31: 00 1001
 				if(((instruction >> 15) & 0x1) == 0x1){
@@ -547,105 +542,91 @@ void handle_instruction()
 				}
 				printf("Instruction ADDIU!\n");
 				break;
-
-			case 0xa; //SLTI 001010
-				immediate = sign_extention(immediate)
-				if(CURRENT_STATE.REGS[rs] < immediate)
+			case 0xA: 
+				//SLTI 001010
+				immediate = sign_extention(immediate);
+				if(CURRENT_STATE.REGS[rs] < immediate){
 					NEXT_STATE.REGS[rd] = 0x00000001;
-				else
+				}
+				else{
 					NEXT_STATE.REGS[rd] = 0x00000000;
+				}
 				break;
-
 			case 0xC:
 			// instrucntion ANDI, bits 26 - 31: 00 1100
-				int temp = instruction & 0xFFFF;
+				temp = instruction & 0xFFFF;
 				CURRENT_STATE.REGS[rs] = CURRENT_STATE.REGS[rs] & 0xFFFF;
 				NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & temp;
 				printf("Instruction ANDI!\n");
 				break;
-
 			case 0xF:
 			// instrucntion LUI, bits 26 - 31: 00 1111
-				int temp = instruction & 0xFFFF;
-				CURRENT_STATE.REGS[rs] = CURRENT_STATE.REGS[rs] & 0xFFFF;
-				NEXT_STATE.REGS[rt] = CURRENT_STATE.REGS[rs] & temp;
+				immediate  = (instruction << 16) & 0xFFFFFFFF;
+				NEXT_STATE.REGS[rt] = immediate;
 				printf("Instruction LUI!\n");
 				break;
-
 			case 0x20:
 			//LB 100000
 				offset = sign_extention(offset);
 				//temp = ((offset << 16) + offset) & 0xffffffff;
 				//contents of the byte at memory location
 				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt] & 0x000000FF);
-				NEXT_STATE.PC = CURRENT_STATE.PC + 2;
 				printf("Instruction LB!\n");
 				break;
-
 			case 0x21:
 			//LH 100001
 				offset = sign_extention(offset);
 				//temp = ((offset << 16) + offset) & 0xffffffff;
 				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);
-				NEXT_STATE.PC = CURRENT_STATE.PC + 8;
 				printf("Instruction LH!\n");
 				break;
-
-			case 0x2a:
+			case 0x2B:
 			//SW 101011
-				offset = sign_extention(offset);
-				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);
-				NEXT_STATE.PC = CURRENT_STATE.PC + 4;
+				/*offset = sign_extention(offset);
+				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);*/
 				printf("Instruction SW!\n");
 				break;
-
 			 case 0x29:
 			 //SH
 				offset = sign_extention(offset);
 				//the least half word store
 				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt] & 0x0000ffff);
-				NEXT_STATE.PC = CURRENT_STATE.PC + 4;
 				printf("Instruction SH!\n");
 				break;
-
 			// may have issue
 			case 0x04:
 			// instrucntion BEQ, bits 26 - 31: 00 0100
-				uint32_t target = offset << 2;
+				target1 = offset << 2;
 				if(((instruction >> 15) & 0x1) == 0x1){
-					target = target | 0xFFFC0000;
+					target1 = target1 | 0xFFFC0000;
 					// bits 2 - 17 unchanged, bits 18 - 31 are all 1
 				}
 				else if(((instruction >> 15) & 0x1) == 0x0){
-					target = target & 0x00003FFC;
+					target1 = target1 & 0x00003FFC;
 				}
-
 				if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]){
-					NEXT_STATE.PC = CURRENT_STATE.PC + target
+					NEXT_STATE.PC = CURRENT_STATE.PC + target;
 				}
 				printf("Instruction BEQ!\n");
 				break;
-
 			case 0x05:
 			// instrucntion BNE, bits 26 - 31: 00 0101
-				uint32_t target = offset << 2;
+				target1 = offset << 2;
 				if(((instruction >> 15) & 0x1) == 0x1){
-					target = target | 0xFFFC0000;
+					target1 = target1 | 0xFFFC0000;
 					// bits 2 - 17 unchanged, bits 18 - 31 are all 1
 				}
 				else if(((instruction >> 15) & 0x1) == 0x0){
-					target = target & 0x00003FFC;
+					target1 = target1 & 0x00003FFC;
 				}
-
 				if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]){
-					NEXT_STATE.PC = CURRENT_STATE.PC + target
+					NEXT_STATE.PC = CURRENT_STATE.PC + target;
 				}
 				printf("Instruction BNE!\n");
 				break;
-
 			case 0x06:
 			// instrucntion BLEZ, bits 26 - 31: 00 0110
-				uint32_t target = offset << 2;
+				target1 = offset << 2;
 				if(((instruction >> 15) & 0x1) == 0x1){
 					target = target | 0xFFFC0000;
 					// bits 2 - 17 unchanged, bits 18 - 31 are all 1
@@ -653,16 +634,14 @@ void handle_instruction()
 				else if(((instruction >> 15) & 0x1) == 0x0){
 					target = target & 0x00003FFC;
 				}
-
 				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x80000000) || (CURRENT_STATE.REGS[rs] == 0x0)){
-					NEXT_STATE.PC = CURRENT_STATE.PC + target
+					NEXT_STATE.PC = CURRENT_STATE.PC + target;
 				}
 				printf("Instruction BLEZ!\n");
 				break;
-
 			case 0x01:
 			// instrucntion BLTZ, bits 26 - 31: 00 0001
-				uint32_t target = offset << 2;
+				target = offset << 2;
 				if(((instruction >> 15) & 0x1) == 0x1){
 					target = target | 0xFFFC0000;
 					// bits 2 - 17 unchanged, bits 16 - 31 are all 1
@@ -670,16 +649,14 @@ void handle_instruction()
 				else if(((instruction >> 15) & 0x1) == 0x0){
 					target = target & 0x00003FFC;
 				}
-
 				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x80000000)){
-					NEXT_STATE.PC = CURRENT_STATE.PC + target
+					NEXT_STATE.PC = CURRENT_STATE.PC + target;
 				}
 				printf("Instruction BLTZ!\n");
 				break;
-
 			case 0x07:
 			// instrucntion BGTZ, bits 26 - 31: 00 0111
-				uint32_t target = offset << 2;
+				target = offset << 2;
 				if(((instruction >> 15) & 0x1) == 0x1){
 					target = target | 0xFFFC0000;
 					// bits 2 - 17 unchanged, bits 16 - 31 are all 1
@@ -687,35 +664,28 @@ void handle_instruction()
 				else if(((instruction >> 15) & 0x1) == 0x0){
 					target = target & 0x00003FFC;
 				}
-
 				//bit 31 equal to 0  and other bits not all equal to 0
 				if(((CURRENT_STATE.REGS[rs] & 0x80000000) == 0x0) && (CURRENT_STATE.REGS[rs] != 0x0)){
-					NEXT_STATE.PC = CURRENT_STATE.PC + target
+					NEXT_STATE.PC = CURRENT_STATE.PC + target;
 				}
 				printf("Instruction BGTZ!\n");
 				break;
-
 			case 0x2: 
 			//J jump 000010  ----------------------
 				target = target << 2;
 				NEXT_STATE.PC = (NEXT_STATE.PC & 0xf0000000) + target;
 				printf("Instruction J!\n");
 				break;
-
 			case 0x3: 
 			//JAL 000011
 				printf("JAL instruction \n");
 				break;
-
-
 		}
-
 	}
+ 	NEXT_STATE.PC = CURRENT_STATE.PC + 4;
 	/*IMPLEMENT THIS*/
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
 }
-
-
 /************************************************************/
 /* Initialize Memory                                                                                                    */
 /************************************************************/
@@ -725,21 +695,18 @@ void initialize() {
 	NEXT_STATE = CURRENT_STATE;
 	RUN_FLAG = TRUE;
 }
-
 /************************************************************/
 /* Print the program loaded into memory (in MIPS assembly format)    */
 /************************************************************/
 void print_program(){
 	int i;
 	uint32_t addr;
-
 	for(i=0; i<PROGRAM_SIZE; i++){
 		addr = MEM_TEXT_BEGIN + (i*4);
 		printf("[0x%x]\t", addr);
 		print_instruction(addr);
 	}
 }
-
 /************************************************************/
 /* Print the instruction at given memory address (in MIPS assembly format)    */
 /************************************************************/
@@ -750,13 +717,13 @@ void print_instruction(uint32_t addr){
 	int offset;
 	int rt;
 	int rs;
+	int rd;
 	int base;
 	int funct;
 	int op;
 	int sa = (instruction >> 6) & 0x1F; //???
 	int target = instruction & 0x03FFFFFF;
 	
-
 	op = instruction >> 26;
 	if(op == 0x0){
 		// Register is R-type
@@ -764,150 +731,119 @@ void print_instruction(uint32_t addr){
 		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
 		funct = instruction & 0x3F;   //bits 0 - 5
-
-		swtich(funct){
+		switch(funct){
 			case 0x20:
 				//printf("Instruction ADD!\n");
 				printf("ADD $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x21:
 				//printf("Instruction ADDU!\n");
 				printf("ADDU $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x24:
 				//instruction AND, bits 0 - 5: 10 0100
 				//printf("Instruction AND!\n");
 				printf("AND $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x25:
 				//instruction OR, bits 0 - 5: 10 0101
 				//printf("Instruction OR!\n");
 				printf("OR $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x26:
 				//instruction XOR, bits 0 - 5: 10 0110
 				//printf("Instruction XOR!\n");
 				printf("XOR $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x27:
 				//instruction NOR, bits 0 - 5: 10 0111
 				//printf("Instruction NOR!\n");
 				printf("NOR $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x1A:
 				//instruction DIV, bits 0 - 5: 01 1010
 				printf("DIV $%d, $%d \n",rs, rt);
 				//printf("Instruction DIV!\n");
 				break;
-
 			case 0x1B:
 				//instruction DIVU, bits 0 - 5: 01 1011
 				printf("DIVU $%d, $%d \n",rs, rt);
 				//printf("Instruction DIVU!\n");
 				break;
-
 			case 0x18:
 				//instruction MULT, bits 0 - 5: 01 1000
 				//printf("Instruction MULT!\n");
 				printf("MULT $%d, $%d \n", rs, rt);
 				break;
-
 			case 0x19:
 				//instruction MULTU, bits 0 - 5: 01 1001
 				//printf("Instruction MULTU!\n");
 				printf("MULTU $%d, $%d \n", rs, rt);
 				break;
-
 			case 0x22:
 				//instruction SUB, bits 0 - 5: 10 0010
 				//printf("Instruction SUB!\n");
 				printf("SUB $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x23:
 				//instruction SUBU, bits 0 - 5: 10 0011
 				//printf("Instruction SUBU!\n");
 				printf("SUBU $%d, $%d, $%d \n", rd, rs, rt);
 				break;
-
 			case 0x10:
 				//instruction MFHI, bits 0 - 5: 01 0000
 				//printf("Instruction MFHI!\n");
 				printf("MFHI $%d\n", rd);
 				break;
-
 			case 0x12:
 				//instruction MFLO, bits 0 - 5: 01 0000
 				//printf("Instruction MFLO!\n");
 				printf("MFLO $%d\n", rd);
 				break;
-
 			case 0x11:
 				//instruction MTHI, bits 0 - 5: 01 0000
 				//printf("Instruction MTHI!\n");
-				printf("MTHI $%d\n, rs");
+				printf("MTHI $%d\n", rs);
 				break;
-
 			case 0x13:
 				//instruction MTLO, bits 0 - 5: 01 0000
 				//printf("Instruction MTLO!\n");
 				printf("MTLO $%d\n", rs);
 				break;
-
 			case 0x2A:
 				//instruction SLT, bits 0 - 5: 10 1010
 				//printf("Instruction SLT!\n");
 				printf("SLT $%d, $%d, $%d\n", rd, rs, rt);
 				break;
-
 			case 0x2:
 	 			// 31 - 26 000000  ; SRL instruction ; 0-5 000010 ; 2
 				printf("SRL $%d, $%d, $%d \n", rd, rt, sa);
 				break;
-
 			case 0x0:
 				// 31 - 26 000000  ; SLL instruction ; 0-5 000000 ; 0
  				printf("SLL $%d, $%d, $%d \n", rd, rt, sa);
 				break;
-
 			case 0x3:
 				// 31 - 26 000000  ; SRA instruction ; 0-5 000011 ; 3
 				printf("SRA $%d, $%d, $%d \n", rd, rt, sa);
 				break;
-
 			case 0x9: //JALR 001001
 				printf("JALR $%d ", rs);
 				printf("JALR $%d, $%d \n", rd, rs);
 				break;
-
 			case 0x8: //JR 001000
 				printf("JR $%d \n", rs);
 				break;
-
-
-
-
+		}
 	}
-
 	// for BGEZ  only .
 	else if(op == 0x1){
 		offset = instruction & 0xFFFF; // bits 0 - 15;
 		funct = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
-
-		swtich(funct){
-			case 0x1:
-				printf("Instruction BGEZ!\n");
-				break;
-		}
+		
+		printf("BGEZ $%d, %d\n",rs, offset);
 	}
-
 	// Register is J-type or I-type
 	else {
 		//immediate = (instruction << 16) & 0xFFFFFFFF;
@@ -916,122 +852,98 @@ void print_instruction(uint32_t addr){
 		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
 		base = (instruction >> 21) & 0x1F; // bits 21 - 25
-
 		switch(op){
 			case 0x08:
 			//instruction ADDI, bits 26 - 31: 00 1000
 				//printf("Instruction ADDI!\n");
 				printf("ADDI $%d, $%d, %d \n", rt, rs, immediate);
 				break;
-
 			case 0xC:   // 001100 ANDI instruction
 				printf("ANDI $%d, $%d, %d \n", rt, rs, immediate);
 				break;
-
 			case 0xD: // ORI instruction 001101
 				printf("ORI $%d, $%d, %d \n", rt, rs, immediate);
 				break;
-
-
 			case 0xE: 
 			//XORI Instruction; 001110;
 				printf("XORI $%d, $%d, %d \n", rt, rs, immediate);
 				break;
-
 			case 0x09:
 			// instrucntion ADDIU, bits 26 - 31: 00 1001
 				//printf("Instruction ADDIU!\n");
 				printf("ADDIU $%d, $%d, %d \n", rt, rs, immediate);
 				break;
-
-
 			case 0xF:
 			// instrucntion LUI, bits 26 - 31: 00 1111
 				//printf("Instruction LUI!\n");
 				printf("LUI $%d, %d \n", rt, immediate);
 				break;
-
 			case 0x20:
 			//LB 100000
 				//printf("Instruction LB!\n");
 				printf("LB $%d, $%d(%d) \n", rt, offset, base);
 				break;
-
 			case 0x21:
 			//LH 100001
 				//printf("Instruction LH!\n");
 				printf("LH $%d, $%d(%d) \n", rt, offset, base);
 				break;
-
 			case 0x23:
 			//SW 101011
 				//printf("Instruction SW!\n");
 				printf("SW $%d, $%d(%d) \n", rt, offset, base);
 				break;
-
 			case 0x29:
 			//SH
 				//printf("Instruction SH!\n");
 				printf("SH $%d, $%d(%d) \n", rt, offset, base);
 				break;
-
 			case 0x28:
  			//SB
  				//printf("Instruction SB!\n");
 				printf("SB $%d, $%d(%d) \n", rt, offset, base);
  				break;
-
-			case 0x28:
+			case 0x0A:
  			//SLTI
  				//printf("Instruction SB!\n");
 				printf("SLTI $%d, $%d, %d \n", rt, rs, immediate);
  				break;
-
 			case 0x04:
 			// instrucntion BEQ, bits 26 - 31: 00 0100
 				//printf("Instruction BEQ!\n");
 				printf("BEQ $%d, $%d, %d \n", rs, rt, offset);
 				break;
-
 			case 0x05:
 			// instrucntion BNE, bits 26 - 31: 00 0101
 				//printf("Instruction BNE!\n");
 				printf("BNE $%d, $%d, %d \n", rs, rt, offset);
 				break;
-
 			case 0x06:
 			// instrucntion BLEZ, bits 26 - 31: 00 0110
 				//printf("Instruction BLEZ!\n");
-				printf("BLEZ $%d, %d \n, rs", offset);
+				printf("BLEZ $%d, %d \n", rs, offset);
 				break;
-
 			case 0x01:
 			// instrucntion BLTZ, bits 26 - 31: 00 0001
 				//printf("Instruction BLTZ!\n");
-				printf("BLTZ $%d, %d \n, rs", offset);
+				printf("BLTZ $%d, %d \n", rs, offset);
 				break;
-
 			case 0x07:
 			// instrucntion BGTZ, bits 26 - 31: 00 0111
 				//printf("Instruction BGTZ!\n");
-				printf("BGTZ $%d, %d \n, rs", offset);
+				printf("BGTZ $%d, %d \n", rs, offset);
 				break;
-
 			case 0x2: //J jump 000010  ----------------------
 				//printf("Instruction J!\n");
-				printf("J target \n", target);
+				printf("J %d \n", target);
 				break;
-
 			case 0x3: //JAL 000011
-				printf("JAL target \n", target);
+				printf("JAL %d \n", target);
 				break;
-
-
 		}
-
 	}
+		NEXT_STATE.PC = CURRENT_STATE.PC + 4;
 }
-
 /***************************************************************/
 /* main                                                                                                                                   */
 /***************************************************************/
@@ -1039,12 +951,10 @@ int main(int argc, char *argv[]) {
 	printf("\n**************************\n");
 	printf("Welcome to MU-MIPS SIM...\n");
 	printf("**************************\n\n");
-
 	if (argc < 2) {
 		printf("Error: You should provide input file.\nUsage: %s <input program> \n\n",  argv[0]);
 		exit(1);
 	}
-
 	strcpy(prog_file, argv[1]);
 	initialize();
 	load_program();
