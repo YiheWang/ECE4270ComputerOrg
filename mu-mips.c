@@ -331,8 +331,12 @@ void handle_instruction()
 	int temp;
 	uint32_t target1;
 	
-
+	
 	op = instruction >> 26;
+	if(intstrution == 'C')
+		{
+	 	RUN_FLAG = FLASE;
+		}
 	if(op == 0x0){
 		// Register is R-type
 		rd = (instruction >> 11) & 0x1F; // bits 11 - 15
@@ -481,7 +485,9 @@ void handle_instruction()
 				//JR 001000
 				printf("JR instruction\n");
 				break;
-			
+			default:
+				printf("!!!!!!!!!!!!!");
+				break;
 		}
 	}
 	// for BGEZ  only .
@@ -515,6 +521,7 @@ void handle_instruction()
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
 		base = (instruction >> 21) & 0x1F; // bits 21 - 25
 		int target = instruction & 0x03FFFFFF; // bits 0 - 25
+		
 		switch(op){
 			case 0x08:
 			//instruction ADDI, bits 26 - 31: 00 1000
@@ -580,6 +587,13 @@ void handle_instruction()
 				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);
 				printf("Instruction LH!\n");
 				break;
+			case 0x23:
+			//LW 100011
+				//printf("Instruction LW!\n");
+				offset = sign_extention(offset);
+				//temp = ((offset << 16) + offset) & 0xffffffff;
+				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt]);				
+				break;
 			case 0x2B:
 			//SW 101011
 				/*offset = sign_extention(offset);
@@ -587,7 +601,7 @@ void handle_instruction()
 				printf("Instruction SW!\n");
 				break;
 			 case 0x29:
-			 //SH
+			 //SH101011 to hex
 				offset = sign_extention(offset);
 				//the least half word store
 				mem_write_32(CURRENT_STATE.REGS[base] + offset, CURRENT_STATE.REGS[rt] & 0x0000ffff);
@@ -680,6 +694,8 @@ void handle_instruction()
 			//JAL 000011
 				printf("JAL instruction \n");
 				break;
+
+
 		}
 	}
  	NEXT_STATE.PC = CURRENT_STATE.PC + 4;
@@ -700,7 +716,7 @@ void initialize() {
 /************************************************************/
 void print_program(){
 	int i;
-	uint32_t addr;
+	uint32_t addr;0010
 	for(i=0; i<PROGRAM_SIZE; i++){
 		addr = MEM_TEXT_BEGIN + (i*4);
 		printf("[0x%x]\t", addr);
@@ -724,7 +740,8 @@ void print_instruction(uint32_t addr){
 	int sa = (instruction >> 6) & 0x1F; //???
 	int target = instruction & 0x03FFFFFF;
 	
-	op = instruction >> 26;
+	op = (instruction >> 26) & 0x3F;
+	//printf("op:%x\n", op);
 	if(op == 0x0){
 		// Register is R-type
 		rd = (instruction >> 11) & 0x1F; // bits 11 - 15
@@ -802,7 +819,7 @@ void print_instruction(uint32_t addr){
 				break;
 			case 0x11:
 				//instruction MTHI, bits 0 - 5: 01 0000
-				//printf("Instruction MTHI!\n");
+				//printf("Instruction0010 MTHI!\n");
 				printf("MTHI $%d\n", rs);
 				break;
 			case 0x13:
@@ -852,6 +869,7 @@ void print_instruction(uint32_t addr){
 		rt = (instruction >> 16) & 0x1F; // bits 16 - 20
 		rs = (instruction >> 21) & 0x1F; // bits 21 - 25
 		base = (instruction >> 21) & 0x1F; // bits 21 - 25
+		//printf("op:%x\n",op);
 		switch(op){
 			case 0x08:
 			//instruction ADDI, bits 26 - 31: 00 1000
@@ -889,19 +907,24 @@ void print_instruction(uint32_t addr){
 				printf("LH $%d, $%d(%d) \n", rt, offset, base);
 				break;
 			case 0x23:
+			//LH 100011
+				//printf("Instruction LW!\n");
+				printf("LW $%d, $%d(%d) \n", rt, offset, base);
+				break;
+			case 0x2B:
 			//SW 101011
 				//printf("Instruction SW!\n");
-				printf("SW $%d, $%d(%d) \n", rt, offset, base);
+				printf("SW $%d, %d($%d) \n", rt, offset, base);
 				break;
 			case 0x29:
 			//SH
 				//printf("Instruction SH!\n");
-				printf("SH $%d, $%d(%d) \n", rt, offset, base);
+				printf("SH $%d, %d($%d) \n", rt, offset, base);
 				break;
 			case 0x28:
  			//SB
  				//printf("Instruction SB!\n");
-				printf("SB $%d, $%d(%d) \n", rt, offset, base);
+				printf("SB $%d, %d($%d) \n", rt, offset, base);
  				break;
 			case 0x0A:
  			//SLTI
