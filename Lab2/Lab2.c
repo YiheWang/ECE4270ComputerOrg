@@ -110,5 +110,3 @@ string tranvertInstruction(string oneLine)
 	}
 }
 
-
-
