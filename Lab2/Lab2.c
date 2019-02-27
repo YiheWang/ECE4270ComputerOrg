@@ -136,6 +136,36 @@ int *storeBinaryInArray(int number, int size)
 	return binaryArray;
 }
 
+//for instruction MULT, MULTU, DIV, DIVU
+int *R_Type_Concatenate(int *rs, int *rt, int *funct)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	for(i = 6; i < 11; ++i){
+		thirtyTwoBits[i] = rs[j];
+		++j;
+	}//store rs into binary array
+
+	j = 0;
+	for(i = 11; i < 16; ++i){
+		thirtyTwoBits[i] = rt[j];
+		++j;
+	}//store rt into binary array
+
+	j = 0;
+	for(i = 26; i < 32; ++i){
+		thirtyTwoBits[i] = funct[j];
+		++j;
+	}//store funct into binary array
+
+	return thirtyTwoBits;
+}
+
 int *R_Type_Concatenate(int *rs, int *rt, int *rd, int *funct)
 {
 	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
@@ -217,7 +247,7 @@ string R_Type_Instruction(vector<string> numberList, int* funct)
 	rd = getPartialInstruction(numberList[0], 5);
 	rs = getPartialInstruction(numberList[1], 5);
 	rt = getPartialInstruction(numberList[2], 5);
-	thirtyTwoBits = R_Type_Concatenate(rs, rd, rt, funct);
+	thirtyTwoBits = R_Type_Concatenate(rs, rt, rd, funct);
 	printArray(thirtyTwoBits,32);
 	machineInstruction = binaryToHex(thirtyTwoBits);
 
@@ -316,6 +346,10 @@ string transvertInstruction(string oneLine)
 	//string instruction;// Like ADD, ADDI
 	int *funct = (int*)malloc(sizeof(int)*6);
 	int *op = (int*)malloc(sizeof(int)*6);
+	int *rs;
+	int *rd;
+	int *rt;
+	int *thirtyTwoBits;
 	string machineInstruction;
 	string tempResult;
 	vector<string> result;//store the seperated strings
@@ -336,6 +370,9 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "ADDU"){
 		cout<<"Instruction ADDU start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100001", 6);// ADDU is 10 0001
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "ADDI"){
 		cout<<"Instruction ADDI start"<<endl;
@@ -344,34 +381,74 @@ string transvertInstruction(string oneLine)
 		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "ADDIU"){
-		cout<<"Instruction ADDIU"<<endl;
+		cout<<"Instruction ADDIU start"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("001001", 6);// ADDIU is 00 1001
+		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "SUB"){
-		cout<<"Instruction SUB"<<endl;
+		cout<<"Instruction SUB start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100010", 6);// SUB is 10 0010
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "SUBU"){
 		cout<<"Instruction SUBU"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100011", 6);// SUB is 10 0011
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "MULT"){
-		cout<<"Instruction MULT"<<endl;
+		cout<<"Instruction MULT start"<<endl;
+		numberList = readNumber(result);
+		rs = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		funct = getPartialInstruction("011000", 6);// MULT is 01 1000
+		thirtyTwoBits = R_Type_Concatenate(rs, rt, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "MULTU"){
-		cout<<"Instruction MULTU"<<endl;
+		cout<<"Instruction MULTU start"<<endl;
+		numberList = readNumber(result);
+		rs = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		funct = getPartialInstruction("011001", 6);// MULTU is 01 1001
+		thirtyTwoBits = R_Type_Concatenate(rs, rt, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "DIV"){
-		cout<<"Instruction DIV"<<endl;
+		cout<<"Instruction DIV start"<<endl;
+		numberList = readNumber(result);
+		rs = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		funct = getPartialInstruction("011010", 6);// DIV is 01 1010
+		thirtyTwoBits = R_Type_Concatenate(rs, rt, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "DIVU"){
-		cout<<"Instruction DIVU"<<endl;
+		cout<<"Instruction DIVU start"<<endl;
+		numberList = readNumber(result);
+		rs = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		funct = getPartialInstruction("011011", 6);// DIVU is 01 1011
+		thirtyTwoBits = R_Type_Concatenate(rs, rt, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "AND"){
-		cout<<"Instruction AND"<<endl;
+		cout<<"Instruction AND start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100100", 6);// AND is 10 0100
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "ANDI"){
-		cout<<"Instruction ANDI"<<endl;
-	}
-	else if(result[0] == "DIVU"){
-		cout<<"Instruction DIVU"<<endl;
+		cout<<"Instruction ANDI start"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("001100", 6);// ANDI is 00 1100
+		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "OR"){
 		cout<<"Instruction OR"<<endl;
