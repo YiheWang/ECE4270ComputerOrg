@@ -1,3 +1,11 @@
+//============================================================================
+// Name        : ECE4270Lab2.cpp
+// Author      : Yihe Wang
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -13,10 +21,11 @@ int transvertInstruction(string);
 //int concatenate(vector<string>);
 //char *numberToBinary(vector<string>);
 vector<string> readNumber(vector<string>);
-int* getPartialInstruction(string);
+int* getPartialInstruction(string, int);
 //take one line of code as input, and return one line of machine code
 int *storeBinaryInArray(int, int);
 //take size and number as input, reture an int array to store binary number
+void printArray(int *, int);
 
 void writeBubbleSort()
 {
@@ -65,31 +74,40 @@ int *storeBinaryInArray(int number, int size)
 	int *binaryArray = (int*)malloc(sizeof(int)*size);
 	int a, b;
 
-	for(int i = size; i > 0; --i){
+	for(int i = size - 1; i >= 0; --i){
 		a = number % 2;
 		b = number / 2;
 		number = b;
 		binaryArray[i] =  a;
 	}
-
+	//return int array stored binary number
 	return binaryArray;
 }
 
-int* getPartialInstruction(string Rd_Rs_Rt)
+int* getPartialInstruction(string partialInstruction, int size)
 {
-	cout<<Rd_Rs_Rt<<endl;
-	int number = stoi(Rd_Rs_Rt);
-	int size = 5;
-	int *binaryArray = storeBinaryInArray(number,size);
+	int number = stoi(partialInstruction);
+	cout<<number<<endl;
+	int *partialInstructionBinary = storeBinaryInArray(number,size);
 
-	return binaryArray;
+	//get binary code for partial instruction, ex. rt is 5-bit
+	return partialInstructionBinary;
+}
+
+void printArray(int *binaryArray, int size)
+{
+	int i;
+	for(i = 0; i < size - 1; ++i){
+		cout<<binaryArray[i];
+	}
+	cout<<binaryArray[i]<<endl;
 }
 
 int transvertInstruction(string oneLine)
 {
 	//string instruction;// Like ADD, ADDI
-	int *rd;
 	int *rs;
+	int *rd;
 	int *rt;
 	int machineInstruction;
 	string tempResult;
@@ -104,11 +122,14 @@ int transvertInstruction(string oneLine)
 	cout<<result[0]<<endl;
 
 	if(result[0] == "ADD"){
-		cout<<"Instruction ADD"<<endl;
+		cout<<"Instruction ADD start"<<endl;
 		numberList = readNumber(result);
-		rs = getPartialInstruction(numberList[0]);
-		rd = getPartialInstruction(numberList[1]);
-		rd = getPartialInstruction(numberList[2]);
+		rs = getPartialInstruction(numberList[0], 5);
+		rd = getPartialInstruction(numberList[1], 5);
+		rt = getPartialInstruction(numberList[2], 5);
+		printArray(rs,5);
+		printArray(rd,5);
+		printArray(rt,5);
 		//get all the number in sequence in one line of code
 
 	}
@@ -253,9 +274,6 @@ int main() {
 	//cout<<machineInstruction<<endl;
 	return 0;
 }
-
-
-
 
 
 
