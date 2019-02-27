@@ -90,7 +90,12 @@ vector<string> readNumber(vector<string> result)
 		}
 		//store data in the array
 		array.push_back(temp) ;
+		if(bracket.empty())
+		{}
+		else
+		{
 		array.push_back(bracket);
+		}
 		//clear string in case of retaking the number
 		bracket.clear();
 		temp.clear();
