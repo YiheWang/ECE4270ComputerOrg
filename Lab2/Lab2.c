@@ -20,6 +20,9 @@ void writeBubbleSort();
 void writeFibonacci();
 string transvertInstruction(string);
 int *R_Type_Concatenate(int *, int *, int *, int *);
+int *I_Type_Concatenate(int *, int *, int *, int *);
+string R_Type_Instruction(vector<string>, int*);
+string I_Type_Instruction(vector<string>, int*);
 vector<string> readNumber(vector<string>);
 int* getPartialInstruction(string, int);//take one line of code as input, and return one line of machine code
 int *storeBinaryInArray(int, int);//take size and number as input, reture an int array to store binary number
@@ -46,10 +49,10 @@ vector<string> readNumber(vector<string> result)
 	int counter= 1,i=0,t=0,j=0,flag=0;
 
 
-	for (int j = 0; j < result.size(); j++) {
+	/*for (int j = 0; j < result.size(); j++) {
 		cout<<result[j]<<endl;
 	}
-	cout<<"size:"<<result.size()<<endl;
+	cout<<"size:"<<result.size()<<endl;*/
 
 	// for loop to read and judge each of number in the string
 	for(i=1;i<length;i++)
@@ -102,8 +105,9 @@ vector<string> readNumber(vector<string> result)
 	}
 
 	for (int j = 0; j < array.size(); j++) { //print the number
-		cout<<array[j]<< endl;
+		cout<<array[j]<<" ";
 	}
+	cout<<endl;
 	return array;
 }
 
@@ -165,6 +169,77 @@ int *R_Type_Concatenate(int *rs, int *rt, int *rd, int *funct)
 	}//store funct code into binary array
 
 	return thirtyTwoBits;
+}
+
+int *I_Type_Concatenate(int *op, int *rs, int *rt, int *immediate)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	for(i = 0; i < 6; ++i){
+		thirtyTwoBits[i] = op[j];
+		++j;
+	}//store op into binary array
+
+	j = 0;
+	for(i = 6; i < 11; ++i){
+		thirtyTwoBits[i] = rs[j];
+		++j;
+	}//store rs into binary array
+
+	j = 0;
+	for(i = 11; i < 16; ++i){
+		thirtyTwoBits[i] = rt[j];
+		++j;
+	}//store rt into binary array
+
+	j = 0;
+	for(i = 16; i < 32; ++i){
+		thirtyTwoBits[i] = immediate[j];
+		++j;
+	}//store rd into binary array
+
+	return thirtyTwoBits;
+}
+
+string R_Type_Instruction(vector<string> numberList, int* funct)
+{
+	int *rs;
+	int *rd;
+	int *rt;
+	string machineInstruction;
+	int *thirtyTwoBits;
+
+	rd = getPartialInstruction(numberList[0], 5);
+	rs = getPartialInstruction(numberList[1], 5);
+	rt = getPartialInstruction(numberList[2], 5);
+	thirtyTwoBits = R_Type_Concatenate(rs, rd, rt, funct);
+	printArray(thirtyTwoBits,32);
+	machineInstruction = binaryToHex(thirtyTwoBits);
+
+	return machineInstruction;
+}
+
+string I_Type_Instruction(vector<string> numberList, int* op)
+{
+	int *rs;
+	int *rt;
+	int *immediate;
+	string machineInstruction;
+	int *thirtyTwoBits;
+
+	rt = getPartialInstruction(numberList[0], 5);
+	rs = getPartialInstruction(numberList[1], 5);
+	immediate = getPartialInstruction(numberList[2], 16);
+	thirtyTwoBits = I_Type_Concatenate(op, rs, rt, immediate);
+	printArray(thirtyTwoBits,32);
+	machineInstruction = binaryToHex(thirtyTwoBits);
+
+		return machineInstruction;
 }
 
 string binaryToHex(int *thirtyTwoBits)
@@ -239,12 +314,9 @@ void printArray(int *binaryArray, int size)
 string transvertInstruction(string oneLine)
 {
 	//string instruction;// Like ADD, ADDI
-	int *rs;
-	int *rd;
-	int *rt;
 	int *funct = (int*)malloc(sizeof(int)*6);
+	int *op = (int*)malloc(sizeof(int)*6);
 	string machineInstruction;
-	int *thirtyTwoBits;
 	string tempResult;
 	vector<string> result;//store the seperated strings
 	stringstream input(oneLine);
@@ -254,25 +326,22 @@ string transvertInstruction(string oneLine)
 		result.push_back(tempResult);
 	}// get the seperated strings and put into vector result
 
-	cout<<result[0]<<endl;
+	//cout<<result[0]<<endl;
 
 	if(result[0] == "ADD"){
 		cout<<"Instruction ADD start"<<endl;
 		numberList = readNumber(result);
-		rs = getPartialInstruction(numberList[0], 5);
-		rd = getPartialInstruction(numberList[1], 5);
-		rt = getPartialInstruction(numberList[2], 5);
 		funct = getPartialInstruction("100000", 6);// ADD is 10 0000
-		thirtyTwoBits = R_Type_Concatenate(rs, rd, rt, funct);
-		printArray(thirtyTwoBits,32);
-		machineInstruction = binaryToHex(thirtyTwoBits);
-		//get all the number in sequence in one line of code
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "ADDU"){
-		cout<<"Instruction ADDU"<<endl;
+		cout<<"Instruction ADDU start"<<endl;
 	}
 	else if(result[0] == "ADDI"){
-		cout<<"Instruction ADDI"<<endl;
+		cout<<"Instruction ADDI start"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("001000", 6);// ADD is 10 0000
+		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "ADDIU"){
 		cout<<"Instruction ADDIU"<<endl;
@@ -403,7 +472,8 @@ int main() {
 	//writeBubbleSort();
 	//writeFibonacci();
 
-	string oneLine = "ADD $7, $6, $6";
+	//string oneLine = "ADD $7, $6, $6";
+	string oneLine = "ADDI $5, $0, 255";
 	string machineInstruction;
 	machineInstruction = transvertInstruction(oneLine);
 	cout<<machineInstruction<<endl;
