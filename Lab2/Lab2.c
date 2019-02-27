@@ -2,23 +2,21 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 
 void writeBubbleSort();
 void writeFibonacci();
-string transvertInstruction(string);
-int concatenateThree(int, int, int);
+int transvertInstruction(string);
+//int charToInt(string);
+//int concatenate(vector<string>);
+//char *numberToBinary(vector<string>);
+vector<string> readNumber(vector<string>);
+int* getPartialInstruction(string);
 //take one line of code as input, and return one line of machine code
-
-int main() {
-	//writeBubbleSort();
-	//writeFibonacci();
-
-	string oneLine = "ADD $7, $6, $6";
-	string machineInstruction;
-	machineInstruction = transvertInstruction(oneLine);
-	return 0;
-}
+int *storeBinaryInArray(int, int);
+//take size and number as input, reture an int array to store binary number
 
 void writeBubbleSort()
 {
@@ -30,20 +28,74 @@ void writeFibonacci()
 
 }
 
-int concatenateThree(int num1, int num2, int num3)
+/*int concatenate(vector<string> result)
 {
-	int num = 1;
+	int num;
+
 
 	return num;
+}*/
+
+vector<string> readNumber(vector<string> result)
+{
+	vector<string> numberList;
+	numberList.push_back("7");
+	numberList.push_back("6");
+	numberList.push_back("6");
+	return numberList;
 }
 
-string transvertInstruction(string oneLine)
+/*char *numberToBinary(vector<string>)
+{
+	char *bitsArray = (char *)malloc(sizeof(char)*32);
+	return bitsArray;
+}*/
+
+/*int charToInt(string charNum)
+{
+	string num = charNum.substr(1,1);
+	string numHex = "0x" + num;//convert to hex
+	cout<<num<<endl;
+	cout<<numHex<<endl;
+	return stoi(numHex,0,0);
+}*/
+
+int *storeBinaryInArray(int number, int size)
+{
+	int *binaryArray = (int*)malloc(sizeof(int)*size);
+	int a, b;
+
+	for(int i = size; i > 0; --i){
+		a = number % 2;
+		b = number / 2;
+		number = b;
+		binaryArray[i] =  a;
+	}
+
+	return binaryArray;
+}
+
+int* getPartialInstruction(string Rd_Rs_Rt)
+{
+	cout<<Rd_Rs_Rt<<endl;
+	int number = stoi(Rd_Rs_Rt);
+	int size = 5;
+	int *binaryArray = storeBinaryInArray(number,size);
+
+	return binaryArray;
+}
+
+int transvertInstruction(string oneLine)
 {
 	//string instruction;// Like ADD, ADDI
-	string machineInstruction;
+	int *rd;
+	int *rs;
+	int *rt;
+	int machineInstruction;
 	string tempResult;
 	vector<string> result;//store the seperated strings
 	stringstream input(oneLine);
+	vector<string> numberList;
 
 	while(input>>tempResult){
 		result.push_back(tempResult);
@@ -53,6 +105,12 @@ string transvertInstruction(string oneLine)
 
 	if(result[0] == "ADD"){
 		cout<<"Instruction ADD"<<endl;
+		numberList = readNumber(result);
+		rs = getPartialInstruction(numberList[0]);
+		rd = getPartialInstruction(numberList[1]);
+		rd = getPartialInstruction(numberList[2]);
+		//get all the number in sequence in one line of code
+
 	}
 	else if(result[0] == "ADDU"){
 		cout<<"Instruction ADDU"<<endl;
@@ -183,6 +241,19 @@ string transvertInstruction(string oneLine)
 
 	return machineInstruction;
 }
+
+
+int main() {
+	//writeBubbleSort();
+	//writeFibonacci();
+
+	string oneLine = "ADD $7, $6, $6";
+	int machineInstruction;
+	machineInstruction = transvertInstruction(oneLine);
+	//cout<<machineInstruction<<endl;
+	return 0;
+}
+
 
 
 
