@@ -40,11 +40,66 @@ void writeFibonacci()
 
 vector<string> readNumber(vector<string> result)
 {
-	vector<string> numberList;
-	numberList.push_back("7");
-	numberList.push_back("6");
-	numberList.push_back("6");
-	return numberList;
+	int length = result.size();
+	vector<string> array;
+	string storage;
+	int counter= 1,i=0,t=0,j=0,flag=0;
+
+
+	for (int j = 0; j < result.size(); j++) {
+		cout<<result[j]<<endl;
+	}
+	cout<<"size:"<<result.size()<<endl;
+
+	// for loop to read and judge each of number in the string
+	for(i=1;i<length;i++)
+	{
+		for( t=0;t!=result[i].size();t++)
+		{
+			//flag is used to divide content in the bracket
+			if(flag == 0)
+			{
+				// if loop check if charcter in the rang 0-9, a-e, A-E
+				if( result[i][t]=='(' || (result[i][t]<='9') && (result[i][t]>='0') || (result[i][t]<='e') && (result[i][t]>='a') || (result[i][t]<='E') && (result[i][t]>='A'))
+				{
+					// if ther are number in the bracket then store it in string btacket
+					if(result[i][t]=='(' )
+					{
+						while(result[i][t] != ')')
+						{
+							t++;                           //worke as counter to store every number in the bracket
+							if(result[i][t] != ')')
+							{
+							bracket += result[i][t];
+							}
+							flag == 1;                     // set flag to prevent program retake content in the bracket
+						}
+
+					}
+					if(flag == 0) // read and store number out of bracket
+					{
+						if(result[i][t] != '(' && result[i][t] != ')')   // dismiss '(' ')'
+							{
+							temp  += result[i][t];
+							}
+					}
+
+				}
+			}
+			flag = 0;           //clear the flag for next string
+		}
+		//store data in the array
+		array.push_back(temp) ;
+		array.push_back(bracket);
+		//clear string in case of retaking the number
+		bracket.clear();
+		temp.clear();
+	}
+
+	for (int j = 0; j < array.size(); j++) { //print the number
+		cout<<array[j]<< endl;
+	}
+	return array;
 }
 
 int* getPartialInstruction(string partialInstruction, int size)
