@@ -18,14 +18,15 @@ using namespace std;
 
 void writeBubbleSort();
 void writeFibonacci();
-int transvertInstruction(string);
+string transvertInstruction(string);
 int *R_Type_Concatenate(int *, int *, int *, int *);
 vector<string> readNumber(vector<string>);
-int* getPartialInstruction(string, int);
-//take one line of code as input, and return one line of machine code
-int *storeBinaryInArray(int, int);
-//take size and number as input, reture an int array to store binary number
+int* getPartialInstruction(string, int);//take one line of code as input, and return one line of machine code
+int *storeBinaryInArray(int, int);//take size and number as input, reture an int array to store binary number
+string binaryToHex(int *);//take 32 bits binary array as input, get a hexidecimal output
+char decimalToHex(int);//take a decimal as input, return a hexidecimal char
 void printArray(int *, int);
+//
 
 void writeBubbleSort()
 {
@@ -37,46 +38,6 @@ void writeFibonacci()
 
 }
 
-int *R_Type_Concatenate(int *rs, int *rt, int *rd, int *funct)
-{
-	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
-	for(int k = 0; k < 32; ++k){
-		thirtyTwoBits[k] = 0;
-	}
-	//printArray(thirtyTwoBits,32);
-
-	int i;
-	int j = 0;
-	for(i = 6; i < 11; ++i){
-		thirtyTwoBits[i] = rs[j];
-		++j;
-	}//store rs into binary array
-	printArray(thirtyTwoBits,32);
-
-	j = 0;
-	for(i = 11; i < 16; ++i){
-		thirtyTwoBits[i] = rt[j];
-		++j;
-	}//store rt into binary array
-	printArray(thirtyTwoBits,32);
-
-	j = 0;
-	for(i = 16; i < 21; ++i){
-		thirtyTwoBits[i] = rd[j];
-		++j;
-	}//store rd into binary array
-	printArray(thirtyTwoBits,32);
-
-	j = 0;
-	for(i = 26; i < 32; ++i){
-		thirtyTwoBits[i] = funct[j];
-		++j;
-	}//store funct code into binary array
-	printArray(thirtyTwoBits,32);
-
-	return thirtyTwoBits;
-}
-
 vector<string> readNumber(vector<string> result)
 {
 	vector<string> numberList;
@@ -86,20 +47,15 @@ vector<string> readNumber(vector<string> result)
 	return numberList;
 }
 
-/*char *numberToBinary(vector<string>)
+int* getPartialInstruction(string partialInstruction, int size)
 {
-	char *bitsArray = (char *)malloc(sizeof(char)*32);
-	return bitsArray;
-}*/
+	int number = stoi(partialInstruction);
+	//cout<<number<<endl;
+	int *partialInstructionBinary = storeBinaryInArray(number,size);
 
-/*int charToInt(string charNum)
-{
-	string num = charNum.substr(1,1);
-	string numHex = "0x" + num;//convert to hex
-	cout<<num<<endl;
-	cout<<numHex<<endl;
-	return stoi(numHex,0,0);
-}*/
+	//get binary code for partial instruction, ex. rt is 5-bit
+	return partialInstructionBinary;
+}
 
 int *storeBinaryInArray(int number, int size)
 {
@@ -116,14 +72,99 @@ int *storeBinaryInArray(int number, int size)
 	return binaryArray;
 }
 
-int* getPartialInstruction(string partialInstruction, int size)
+int *R_Type_Concatenate(int *rs, int *rt, int *rd, int *funct)
 {
-	int number = stoi(partialInstruction);
-	//cout<<number<<endl;
-	int *partialInstructionBinary = storeBinaryInArray(number,size);
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
 
-	//get binary code for partial instruction, ex. rt is 5-bit
-	return partialInstructionBinary;
+	int i;
+	int j = 0;
+	for(i = 6; i < 11; ++i){
+		thirtyTwoBits[i] = rs[j];
+		++j;
+	}//store rs into binary array
+
+	j = 0;
+	for(i = 11; i < 16; ++i){
+		thirtyTwoBits[i] = rt[j];
+		++j;
+	}//store rt into binary array
+
+	j = 0;
+	for(i = 16; i < 21; ++i){
+		thirtyTwoBits[i] = rd[j];
+		++j;
+	}//store rd into binary array
+
+	j = 0;
+	for(i = 26; i < 32; ++i){
+		thirtyTwoBits[i] = funct[j];
+		++j;
+	}//store funct code into binary array
+
+	return thirtyTwoBits;
+}
+
+string binaryToHex(int *thirtyTwoBits)
+{
+	string machineInstruction = "00000000";
+	int i;
+	for(i = 0; i < 8; ++i){
+		int tempNum = 0;
+		int j;
+		for(j = 0; j < 4; ++j){
+			if(j == 0){
+				tempNum = thirtyTwoBits[j + 4*i] * 8 + tempNum;
+			}
+			else if(j == 1){
+				tempNum = thirtyTwoBits[j + 4*i] * 4 + tempNum;
+			}
+			else if(j == 2){
+				tempNum = thirtyTwoBits[j + 4*i] * 2 + tempNum;
+			}
+			else if(j == 3){
+				tempNum = thirtyTwoBits[j + 4*i] * 1 + tempNum;
+			}
+		}//transvert 4 bits into a decimal number
+		//cout<<tempNum<<endl;
+		machineInstruction[i] = decimalToHex(tempNum);
+	}//every 4 bits as a loop
+
+	return machineInstruction;
+}
+
+char decimalToHex(int tempNum)
+{
+	char *hex = (char *)malloc(sizeof(char));
+	if(tempNum >= 10){
+		switch(tempNum){
+			case 10:
+				hex[0] = 'A';
+				break;
+			case 11:
+				hex[0] = 'B';
+				break;
+			case 12:
+				hex[0] = 'C';
+				break;
+			case 13:
+				hex[0] = 'D';
+				break;
+			case 14:
+				hex[0] = 'E';
+				break;
+			case 15:
+				hex[0] = 'F';
+				break;
+		}
+	}// number bigger than 9
+	else{
+		sprintf(hex,"%d",tempNum);
+	}//number smaller than 9
+
+	return hex[0];
 }
 
 void printArray(int *binaryArray, int size)
@@ -135,14 +176,14 @@ void printArray(int *binaryArray, int size)
 	cout<<binaryArray[i]<<endl;
 }
 
-int transvertInstruction(string oneLine)
+string transvertInstruction(string oneLine)
 {
 	//string instruction;// Like ADD, ADDI
 	int *rs;
 	int *rd;
 	int *rt;
 	int *funct = (int*)malloc(sizeof(int)*6);
-	int machineInstruction;
+	string machineInstruction;
 	int *thirtyTwoBits;
 	string tempResult;
 	vector<string> result;//store the seperated strings
@@ -162,11 +203,9 @@ int transvertInstruction(string oneLine)
 		rd = getPartialInstruction(numberList[1], 5);
 		rt = getPartialInstruction(numberList[2], 5);
 		funct = getPartialInstruction("100000", 6);// ADD is 10 0000
-		/*printArray(rs,5);
-		printArray(rd,5);
-		printArray(rt,5);*/
 		thirtyTwoBits = R_Type_Concatenate(rs, rd, rt, funct);
-		//printArray(thirtyTwoBits,32);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 		//get all the number in sequence in one line of code
 	}
 	else if(result[0] == "ADDU"){
@@ -305,9 +344,9 @@ int main() {
 	//writeFibonacci();
 
 	string oneLine = "ADD $7, $6, $6";
-	int machineInstruction;
+	string machineInstruction;
 	machineInstruction = transvertInstruction(oneLine);
-	//cout<<machineInstruction<<endl;
+	cout<<machineInstruction<<endl;
 	return 0;
 }
 
