@@ -14,12 +14,12 @@
 #include <stdlib.h>
 using namespace std;
 
+//int *sixBitZero = (int *)malloc(sizeof(int)*6);
+
 void writeBubbleSort();
 void writeFibonacci();
 int transvertInstruction(string);
-//int charToInt(string);
-//int concatenate(vector<string>);
-//char *numberToBinary(vector<string>);
+int *R_Type_Concatenate(int *, int *, int *, int *);
 vector<string> readNumber(vector<string>);
 int* getPartialInstruction(string, int);
 //take one line of code as input, and return one line of machine code
@@ -37,13 +37,45 @@ void writeFibonacci()
 
 }
 
-/*int concatenate(vector<string> result)
+int *R_Type_Concatenate(int *rs, int *rt, int *rd, int *funct)
 {
-	int num;
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+	//printArray(thirtyTwoBits,32);
 
+	int i;
+	int j = 0;
+	for(i = 6; i < 11; ++i){
+		thirtyTwoBits[i] = rs[j];
+		++j;
+	}//store rs into binary array
+	printArray(thirtyTwoBits,32);
 
-	return num;
-}*/
+	j = 0;
+	for(i = 11; i < 16; ++i){
+		thirtyTwoBits[i] = rt[j];
+		++j;
+	}//store rt into binary array
+	printArray(thirtyTwoBits,32);
+
+	j = 0;
+	for(i = 16; i < 21; ++i){
+		thirtyTwoBits[i] = rd[j];
+		++j;
+	}//store rd into binary array
+	printArray(thirtyTwoBits,32);
+
+	j = 0;
+	for(i = 26; i < 32; ++i){
+		thirtyTwoBits[i] = funct[j];
+		++j;
+	}//store funct code into binary array
+	printArray(thirtyTwoBits,32);
+
+	return thirtyTwoBits;
+}
 
 vector<string> readNumber(vector<string> result)
 {
@@ -87,7 +119,7 @@ int *storeBinaryInArray(int number, int size)
 int* getPartialInstruction(string partialInstruction, int size)
 {
 	int number = stoi(partialInstruction);
-	cout<<number<<endl;
+	//cout<<number<<endl;
 	int *partialInstructionBinary = storeBinaryInArray(number,size);
 
 	//get binary code for partial instruction, ex. rt is 5-bit
@@ -109,7 +141,9 @@ int transvertInstruction(string oneLine)
 	int *rs;
 	int *rd;
 	int *rt;
+	int *funct = (int*)malloc(sizeof(int)*6);
 	int machineInstruction;
+	int *thirtyTwoBits;
 	string tempResult;
 	vector<string> result;//store the seperated strings
 	stringstream input(oneLine);
@@ -127,11 +161,13 @@ int transvertInstruction(string oneLine)
 		rs = getPartialInstruction(numberList[0], 5);
 		rd = getPartialInstruction(numberList[1], 5);
 		rt = getPartialInstruction(numberList[2], 5);
-		printArray(rs,5);
+		funct = getPartialInstruction("100000", 6);// ADD is 10 0000
+		/*printArray(rs,5);
 		printArray(rd,5);
-		printArray(rt,5);
+		printArray(rt,5);*/
+		thirtyTwoBits = R_Type_Concatenate(rs, rd, rt, funct);
+		//printArray(thirtyTwoBits,32);
 		//get all the number in sequence in one line of code
-
 	}
 	else if(result[0] == "ADDU"){
 		cout<<"Instruction ADDU"<<endl;
