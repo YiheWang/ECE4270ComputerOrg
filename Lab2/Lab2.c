@@ -451,19 +451,34 @@ string transvertInstruction(string oneLine)
 		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "OR"){
-		cout<<"Instruction OR"<<endl;
+		cout<<"Instruction OR start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100101", 6);// OR is 10 0101
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "ORI"){
-		cout<<"Instruction ORI"<<endl;
+		cout<<"Instruction ORI start"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("001101", 6);// ORI is 00 1101
+		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "XOR"){
-		cout<<"Instruction XOR"<<endl;
+		cout<<"Instruction XOR start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100110", 6);// XOR is 10 0110
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "XORI"){
 		cout<<"Instruction XORI"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("001110", 6);// ORI is 00 1110
+		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "NOR"){
-		cout<<"Instruction NOR"<<endl;
+		cout<<"Instruction NOR start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100111", 6);// OR is 10 0111
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "SLT"){
 		cout<<"Instruction SLT"<<endl;
