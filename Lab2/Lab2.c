@@ -42,7 +42,7 @@ vector<string> readNumber(vector<string> result)
 {
 	int length = result.size();
 	vector<string> array;
-	string storage;
+	string storage,temp, bracket;
 	int counter= 1,i=0,t=0,j=0,flag=0;
 
 
