@@ -7,14 +7,15 @@
 //============================================================================
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
 
-//int *sixBitZero = (int *)malloc(sizeof(int)*6);
+#define MAX_LINE 1024
 
 void writeBubbleSort();
 void writeFibonacci();
@@ -39,12 +40,73 @@ void printArray(int *, int);
 
 void writeBubbleSort()
 {
+	vector<string> multipleLines;
+	string fileName1 = "BubbleSort.txt";
+	string fileName2 = "ResultOfBubbleSort.txt";
+	ifstream in;
+	ofstream out;
+	in.open(fileName1);
+	out.open(fileName2);
+	if(!in.is_open()){
+		cout<<"File BubbleSort.txt open error!"<<endl;
+	}//check error
+	if(!out.is_open()){
+		cout<<"File ResultOfBubbleSort.txt open error!"<<endl;
+	}//check error
+
+	string oneLine;
+	while(!in.eof()){
+		//in>>oneLine;
+		getline(in,oneLine);
+		multipleLines.push_back(oneLine);
+	}//write the signal into the vector
+	cout<<multipleLines[0]<<endl;
+
+	string instruction;
+	int size = multipleLines.size();
+	for(int i = 0; i < size; ++i){
+		instruction = transvertInstruction(multipleLines[i]);
+		cout<<multipleLines[i]<<endl;
+		out<<instruction<<endl;
+	}
+
+	in.close();
+	out.close();
 
 }
 
 void writeFibonacci()
 {
+	vector<string> multipleLines;
+	string fileName1 = "Fibonacci.txt";
+	string fileName2 = "ResultOfFibonacci.txt";
+	ifstream in;
+	ofstream out;
+	in.open(fileName1);
+	out.open(fileName2);
+	if(!in.is_open()){
+		cout<<"File Fibonacci.txt open error!"<<endl;
+	}//check error
+	if(!out.is_open()){
+		cout<<"File ResultOfFibonacci.txt open error!"<<endl;
+	}//check error
 
+	string oneLine;
+	while(!in.eof()){
+		//in>>oneLine;
+		getline(in,oneLine);
+		multipleLines.push_back(oneLine);
+	}//write the signal into the vector
+
+	string instruction;
+	int size = multipleLines.size();
+	for(int i = 0; i < size; ++i){
+		instruction = transvertInstruction(multipleLines[i]);
+		out<<instruction<<endl;
+	}
+
+	in.close();
+	out.close();
 }
 
 vector<string> readNumber(vector<string> result)
@@ -893,14 +955,14 @@ string transvertInstruction(string oneLine)
 
 
 int main() {
-	//writeBubbleSort();
+	writeBubbleSort();
 	//writeFibonacci();
 
 	//string oneLine = "ADD $7, $6, $6";
-	string oneLine = "ADDI $5, $0, 255";
+	/*string oneLine = "ADDI $5, $0, 255";
 	string machineInstruction;
 	machineInstruction = transvertInstruction(oneLine);
-	cout<<machineInstruction<<endl;
+	cout<<machineInstruction<<endl;*/
 	return 0;
 }
 
