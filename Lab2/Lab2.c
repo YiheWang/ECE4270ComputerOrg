@@ -131,7 +131,7 @@ vector<string> readNumber(vector<string> result)
 			if(flag == 0)
 			{
 				// if loop check if charcter in the rang 0-9, a-e, A-E
-				if( result[i][t]=='(' || (result[i][t]<='9') && (result[i][t]>='0'))
+				if( result[i][t]=='(' || (result[i][t]<='9') && (result[i][t]>='0') || (result[i][t]<='e') && (result[i][t]>='a') || (result[i][t]<='E') && (result[i][t]>='A'))
 				{
 					// if ther are number in the bracket then store it in string btacket
 					if(result[i][t]=='(' )
