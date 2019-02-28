@@ -137,13 +137,16 @@ vector<string> readNumber(vector<string> result)
 					if(result[i][t]=='(' )
 					{
 						while(result[i][t] != ')')
-						{
-							t++;                           //worke as counter to store every number in the bracket
-							if(result[i][t] != ')')
+						{	
+							if( (result[i][t]<='9') && (result[i][t]>='0') || (result[i][t]<='e') && (result[i][t]>='a') || (result[i][t]<='E') && (result[i][t]>='A'))
 							{
-							bracket += result[i][t];
+							t++;                           //worke as counter to store every number in the bracket
+								if(result[i][t] != ')')
+								{
+								bracket += result[i][t];
+								}
+								flag == 1;                     // set flag to prevent program retake content in the bracket
 							}
-							flag == 1;                     // set flag to prevent program retake content in the bracket
 						}
 
 					}
