@@ -225,6 +225,7 @@ int *move_Type_Concatenate(int *rd, int *funct)
 		++j;
 	}//store rd into binary array
 
+	j = 0;
 	for(i = 26; i < 32; ++i){
 		thirtyTwoBits[i] = funct[j];
 		++j;
@@ -247,17 +248,22 @@ int *load_Type_Concatenate(int *funct, int *base, int *rt, int *offset)
 		thirtyTwoBits[i] = funct[j];
 		++j;
 	}//store funct into binary array
+	//printArray(thirtyTwoBits,32);
 
+	j = 0;
 	for(i = 6; i < 11; ++i){
 		thirtyTwoBits[i] = base[j];
 		++j;
 	}//store base into binary array
+	//printArray(thirtyTwoBits,32);
 
+	j = 0;
 	for(i = 11; i < 16; ++i){
 		thirtyTwoBits[i] = rt[j];
 		++j;
 	}//store rt into binary array
 
+	j = 0;
 	for(i = 16; i < 32; ++i){
 		thirtyTwoBits[i] = offset[j];
 		++j;
@@ -416,6 +422,7 @@ int *branch_Less_Type_Concatenate(int *op, int *rs, int *offset)
 		thirtyTwoBits[i] = op[j];
 		++j;
 	}//store op into binary array
+	printArray(thirtyTwoBits,32);
 
 	j = 0;
 	for(i = 6; i < 11; ++i){
@@ -637,6 +644,12 @@ string transvertInstruction(string oneLine)
 		funct = getPartialInstruction("100010", 6, true);// SUB is 10 0010
 		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
+	else if(result[0] == "SUBI"){
+		cout<<"Instruction SUBI start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("100010", 6, true);// SUBI is 10 0010
+		machineInstruction = R_Type_Instruction(numberList,funct);
+	}
 	else if(result[0] == "SUBU"){
 		cout<<"Instruction SUBU"<<endl;
 		numberList = readNumber(result);
@@ -851,6 +864,7 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "MFHI"){
 		cout<<"Instruction MFHI"<<endl;
+		numberList = readNumber(result);
 		rd = getPartialInstruction(numberList[0], 5, false);
 		funct = getPartialInstruction("010000", 6, true);// MFHI is 01 0000
 		thirtyTwoBits = move_Type_Concatenate(rd, funct);
@@ -859,6 +873,7 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "MFLO"){
 		cout<<"Instruction MFLO"<<endl;
+		numberList = readNumber(result);
 		rd = getPartialInstruction(numberList[0], 5, false);
 		funct = getPartialInstruction("010010", 6, true);// MFLO is 01 0010
 		thirtyTwoBits = move_Type_Concatenate(rd, funct);
@@ -879,6 +894,7 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "BLEZ"){
 		cout<<"Instruction BLEZ"<<endl;
+		numberList = readNumber(result);
 		rs = getPartialInstruction(numberList[0], 5, false);
 		offset = getPartialInstruction(numberList[1], 16, false);
 		op = getPartialInstruction("000110", 6, true);// BLEZ is 00 0110
@@ -889,6 +905,7 @@ string transvertInstruction(string oneLine)
 	else if(result[0] == "BLTZ"){
 		cout<<"Instruction BLTZ"<<endl;
 		//Special case: REGIMM:00 0001
+		numberList = readNumber(result);
 		rs = getPartialInstruction(numberList[0], 5, false);
 		offset = getPartialInstruction(numberList[1], 16, false);
 		op = getPartialInstruction("000001", 6, true);// BLTZ is 00 0001
@@ -899,6 +916,7 @@ string transvertInstruction(string oneLine)
 	else if(result[0] == "BGEZ"){
 		cout<<"Instruction BGEZ"<<endl;
 		//Special case: REGIMM:00 0001 BGEZ:00001
+		numberList = readNumber(result);
 		rs = getPartialInstruction(numberList[0], 5, false);
 		offset = getPartialInstruction(numberList[1], 16, false);
 		op = getPartialInstruction("000001", 6, true);// BGEZ is 00 0001
@@ -909,6 +927,7 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "BGTZ"){
 		cout<<"Instruction BGTZ"<<endl;
+		numberList = readNumber(result);
 		rs = getPartialInstruction(numberList[0], 5, false);
 		offset = getPartialInstruction(numberList[1], 16, false);
 		op = getPartialInstruction("000111", 6, true);// BGTZ is 00 0111
@@ -918,6 +937,7 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "J"){
 		cout<<"Instruction J"<<endl;
+		numberList = readNumber(result);
 		target = getPartialInstruction(numberList[0], 26, false);
 		op = getPartialInstruction("000010", 6, true);// J is 00 0010
 		thirtyTwoBits = jump_Type_Concatenate(op, target);
@@ -926,6 +946,7 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "JAL"){
 		cout<<"Instruction JAL"<<endl;
+		numberList = readNumber(result);
 		target = getPartialInstruction(numberList[0], 26, false);
 		op = getPartialInstruction("000011", 6, true);// JAL is 00 0011
 		thirtyTwoBits = jump_Type_Concatenate(op, target);
@@ -936,6 +957,7 @@ string transvertInstruction(string oneLine)
 	//two special case, use R_Type_Instruction
 	else if(result[0] == "JR"){
 		cout<<"Instruction JR"<<endl;
+		numberList = readNumber(result);
 		rs = getPartialInstruction(numberList[0], 5, false);
 		rt = getPartialInstruction("00000", 5, true);
 		rd = getPartialInstruction("00000", 5, true);
@@ -947,6 +969,7 @@ string transvertInstruction(string oneLine)
 	//this one may not correct
 	else if(result[0] == "JALR"){
 		cout<<"Instruction JALR"<<endl;
+		numberList = readNumber(result);
 		rd = getPartialInstruction(numberList[0], 5, false);
 		rs = getPartialInstruction(numberList[1], 5, false);
 		rt = getPartialInstruction("00000", 5, true);
