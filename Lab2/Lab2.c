@@ -23,8 +23,11 @@ int *R_Type_Concatenate(int *, int *, int *, int *);
 int *I_Type_Concatenate(int *, int *, int *, int *);
 int *shift_Type_Concatenate(int *, int *, int *, int *);
 int *load_Type_Concatenate(int *, int *, int *, int *);
+int *move_Type_Concatenate(int *, int*);
+int *branch_Less_Type_Concatenate(int *, int *, int *);
 string R_Type_Instruction(vector<string>, int*);
 string I_Type_Instruction(vector<string>, int*);
+string branch_Type_Instruction(vector<string>, int*);
 vector<string> readNumber(vector<string>);
 int* getPartialInstruction(string, int);//take one line of code as input, and return one line of machine code
 int *storeBinaryInArray(int, int);//take size and number as input, reture an int array to store binary number
@@ -136,6 +139,29 @@ int *storeBinaryInArray(int number, int size)
 	}
 	//return int array stored binary number
 	return binaryArray;
+}
+
+//for instruction MFHI, MFLO
+int *move_Type_Concatenate(int *rd, int *funct)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	for(i = 16; i < 21; ++i){
+		thirtyTwoBits[i] = rd[j];
+		++j;
+	}//store rd into binary array
+
+	for(i = 26; i < 32; ++i){
+		thirtyTwoBits[i] = funct[j];
+		++j;
+	}//store funct into binary array
+
+	return thirtyTwoBits;
 }
 
 // for instruction LW, LB, LH, SW, SB, SH   , LUI is special case
@@ -307,6 +333,36 @@ int *I_Type_Concatenate(int *op, int *rs, int *rt, int *immediate)
 	return thirtyTwoBits;
 }
 
+// for instruction BLEZ, BLTZ(special case), BGEZ(special case)
+int *branch_Less_Type_Concatenate(int *op, int *rs, int *offset)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	for(i = 0; i < 6; ++i){
+		thirtyTwoBits[i] = op[j];
+		++j;
+	}//store op into binary array
+
+	j = 0;
+	for(i = 6; i < 11; ++i){
+		thirtyTwoBits[i] = rs[j];
+		++j;
+	}//store rs into binary array
+
+	j = 0;
+	for(i = 16; i < 32; ++i){
+		thirtyTwoBits[i] = offset[j];
+		++j;
+	}//store rd into binary array
+
+	return thirtyTwoBits;
+}
+
 string R_Type_Instruction(vector<string> numberList, int* funct)
 {
 	int *rs;
@@ -340,7 +396,26 @@ string I_Type_Instruction(vector<string> numberList, int* op)
 	printArray(thirtyTwoBits,32);
 	machineInstruction = binaryToHex(thirtyTwoBits);
 
-		return machineInstruction;
+	return machineInstruction;
+}
+
+//for instruction BEQ, BNE
+string branch_Type_Instruction(vector<string> numberList, int* op)
+{
+	int *rs;
+	int *rt;
+	int *offset;
+	string machineInstruction;
+	int *thirtyTwoBits;
+
+	rs = getPartialInstruction(numberList[0], 5);
+	rt = getPartialInstruction(numberList[1], 5);
+	offset = getPartialInstruction(numberList[2], 16);
+	thirtyTwoBits = I_Type_Concatenate(op, rs, rt, offset);
+	printArray(thirtyTwoBits,32);
+	machineInstruction = binaryToHex(thirtyTwoBits);
+
+	return machineInstruction;
 }
 
 string binaryToHex(int *thirtyTwoBits)
@@ -642,7 +717,7 @@ string transvertInstruction(string oneLine)
 		immediate = getPartialInstruction(numberList[1], 16);
 		base = getPartialInstruction("00000", 5);
 		funct = getPartialInstruction("001111", 6);// LUI is 00 1111
-		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, immediate);
 		printArray(thirtyTwoBits,32);
 		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
@@ -681,30 +756,70 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "MFHI"){
 		cout<<"Instruction MFHI"<<endl;
+		rd = getPartialInstruction(numberList[0], 5);
+		funct = getPartialInstruction("010000", 6);// MFHI is 01 0000
+		thirtyTwoBits = move_Type_Concatenate(rd, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "MFLO"){
 		cout<<"Instruction MFLO"<<endl;
+		rd = getPartialInstruction(numberList[0], 5);
+		funct = getPartialInstruction("010010", 6);// MFLO is 01 0010
+		thirtyTwoBits = move_Type_Concatenate(rd, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "BEQ"){
 		cout<<"Instruction BEQ"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("000100", 6);// BEQ is 00 0100
+		machineInstruction = branch_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "BNE"){
 		cout<<"Instruction BNE"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("000101", 6);// BNE is 00 0101
+		machineInstruction = branch_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "BLEZ"){
 		cout<<"Instruction BLEZ"<<endl;
+		rs = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		op = getPartialInstruction("000110", 6);// BLEZ is 00 0110
+		thirtyTwoBits = branch_Less_Type_Concatenate(op, rs, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "BLTZ"){
 		cout<<"Instruction BLTZ"<<endl;
+		//Special case: REGIMM:00 0001
+		rs = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		op = getPartialInstruction("000001", 6);// BLTZ is 00 0001
+		thirtyTwoBits = branch_Less_Type_Concatenate(op, rs, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "BGEZ"){
 		cout<<"Instruction BGEZ"<<endl;
-	}
-	else if(result[0] == "BLTZ"){
-		cout<<"Instruction BLTZ"<<endl;
+		//Special case: REGIMM:00 0001 BGEZ:00001
+		rs = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		op = getPartialInstruction("000001", 6);// BGEZ is 00 0001
+		thirtyTwoBits = branch_Less_Type_Concatenate(op, rs, offset);
+		thirtyTwoBits[15] = 1;
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "BGTZ"){
 		cout<<"Instruction BGTZ"<<endl;
+		rs = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		op = getPartialInstruction("000111", 6);// BGTZ is 00 0111
+		thirtyTwoBits = branch_Less_Type_Concatenate(op, rs, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "J"){
 		cout<<"Instruction J"<<endl;
