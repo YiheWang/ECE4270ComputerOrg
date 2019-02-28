@@ -22,6 +22,7 @@ string transvertInstruction(string);
 int *R_Type_Concatenate(int *, int *, int *, int *);
 int *I_Type_Concatenate(int *, int *, int *, int *);
 int *shift_Type_Concatenate(int *, int *, int *, int *);
+int *load_Type_Concatenate(int *, int *, int *, int *);
 string R_Type_Instruction(vector<string>, int*);
 string I_Type_Instruction(vector<string>, int*);
 vector<string> readNumber(vector<string>);
@@ -137,7 +138,40 @@ int *storeBinaryInArray(int number, int size)
 	return binaryArray;
 }
 
-// for instruction SLL, SRL
+// for instruction LW, LB, LH, SW, SB, SH   , LUI is special case
+int *load_Type_Concatenate(int *funct, int *base, int *rt, int *offset)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	for(i = 0; i < 6; ++i){
+		thirtyTwoBits[i] = funct[j];
+		++j;
+	}//store funct into binary array
+
+	for(i = 6; i < 11; ++i){
+		thirtyTwoBits[i] = base[j];
+		++j;
+	}//store base into binary array
+
+	for(i = 11; i < 16; ++i){
+		thirtyTwoBits[i] = rt[j];
+		++j;
+	}//store rt into binary array
+
+	for(i = 16; i < 32; ++i){
+		thirtyTwoBits[i] = offset[j];
+		++j;
+	}//store rt into binary array
+
+	return thirtyTwoBits;
+}
+
+// for instruction SLL, SRL, SRA
 int *shift_Type_Concatenate(int *rt, int *rd, int *sa, int *funct)
 {
 	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
@@ -147,7 +181,6 @@ int *shift_Type_Concatenate(int *rt, int *rd, int *sa, int *funct)
 
 	int i;
 	int j = 0;
-	j = 0;
 	for(i = 11; i < 16; ++i){
 		thirtyTwoBits[i] = rt[j];
 		++j;
@@ -388,6 +421,9 @@ string transvertInstruction(string oneLine)
 	int *rd;
 	int *rt;
 	int *sa;
+	int *base;
+	int *offset;
+	int *immediate;
 	int *thirtyTwoBits;
 	string machineInstruction;
 	string tempResult;
@@ -566,24 +602,82 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "LW"){
 		cout<<"Instruction LW"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("100011", 6);// LW is 10 0011
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "LB"){
 		cout<<"Instruction LB"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("100000", 6);// LB is 10 0000
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "LH"){
 		cout<<"Instruction LH"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("100001", 6);// LB is 10 0001
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
+
+	//special case, I use it as load type
 	else if(result[0] == "LUI"){
 		cout<<"Instruction LUI"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		immediate = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction("00000", 5);
+		funct = getPartialInstruction("001111", 6);// LUI is 00 1111
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "SW"){
 		cout<<"Instruction SW"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("101011", 6);// SW is 10 1011
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "SB"){
 		cout<<"Instruction SB"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("101000", 6);// SB is 10 1000
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "SH"){
 		cout<<"Instruction SH"<<endl;
+		numberList = readNumber(result);
+		rt = getPartialInstruction(numberList[0], 5);
+		offset = getPartialInstruction(numberList[1], 16);
+		base = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("101001", 6);// SH is 10 1001
+		thirtyTwoBits = load_Type_Concatenate(funct, base, rt, offset);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "MFHI"){
 		cout<<"Instruction MFHI"<<endl;
