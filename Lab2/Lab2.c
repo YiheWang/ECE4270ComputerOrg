@@ -25,6 +25,7 @@ int *shift_Type_Concatenate(int *, int *, int *, int *);
 int *load_Type_Concatenate(int *, int *, int *, int *);
 int *move_Type_Concatenate(int *, int*);
 int *branch_Less_Type_Concatenate(int *, int *, int *);
+int *jump_Type_Concatenate(int *, int *);
 string R_Type_Instruction(vector<string>, int*);
 string I_Type_Instruction(vector<string>, int*);
 string branch_Type_Instruction(vector<string>, int*);
@@ -363,6 +364,31 @@ int *branch_Less_Type_Concatenate(int *op, int *rs, int *offset)
 	return thirtyTwoBits;
 }
 
+//for instruction J, JAL
+int *jump_Type_Concatenate(int *op, int *target)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	for(i = 0; i < 6; ++i){
+		thirtyTwoBits[i] = op[j];
+		++j;
+	}//store op into binary array
+
+	j = 0;
+	for(i = 6; i < 32; ++i){
+		thirtyTwoBits[i] = target[j];
+		++j;
+	}//store target into binary array
+
+
+	return thirtyTwoBits;
+}
+
 string R_Type_Instruction(vector<string> numberList, int* funct)
 {
 	int *rs;
@@ -499,6 +525,7 @@ string transvertInstruction(string oneLine)
 	int *base;
 	int *offset;
 	int *immediate;
+	int *target;
 	int *thirtyTwoBits;
 	string machineInstruction;
 	string tempResult;
@@ -823,15 +850,42 @@ string transvertInstruction(string oneLine)
 	}
 	else if(result[0] == "J"){
 		cout<<"Instruction J"<<endl;
-	}
-	else if(result[0] == "JR"){
-		cout<<"Instruction JR"<<endl;
+		target = getPartialInstruction(numberList[0], 26);
+		op = getPartialInstruction("000010", 6);// J is 00 0010
+		thirtyTwoBits = jump_Type_Concatenate(op, target);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "JAL"){
 		cout<<"Instruction JAL"<<endl;
+		target = getPartialInstruction(numberList[0], 26);
+		op = getPartialInstruction("000011", 6);// JAL is 00 0011
+		thirtyTwoBits = jump_Type_Concatenate(op, target);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
+
+	//two special case, use R_Type_Instruction
+	else if(result[0] == "JR"){
+		cout<<"Instruction JR"<<endl;
+		rs = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction("00000", 5);
+		rd = getPartialInstruction("00000", 5);
+		funct = getPartialInstruction("001000", 6);// JR is 00 1000
+		thirtyTwoBits = R_Type_Concatenate(rs, rt, rd, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
+	}
+	//this one may not correct
 	else if(result[0] == "JALR"){
 		cout<<"Instruction JALR"<<endl;
+		rd = getPartialInstruction(numberList[0], 5);
+		rs = getPartialInstruction(numberList[1], 5);
+		rt = getPartialInstruction("00000", 5);
+		funct = getPartialInstruction("001001", 6);// JALR is 00 1001
+		thirtyTwoBits = R_Type_Concatenate(rs, rt, rd, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 
 	return machineInstruction;
