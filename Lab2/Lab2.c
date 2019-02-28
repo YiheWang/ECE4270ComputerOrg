@@ -21,6 +21,7 @@ void writeFibonacci();
 string transvertInstruction(string);
 int *R_Type_Concatenate(int *, int *, int *, int *);
 int *I_Type_Concatenate(int *, int *, int *, int *);
+int *shift_Type_Concatenate(int *, int *, int *, int *);
 string R_Type_Instruction(vector<string>, int*);
 string I_Type_Instruction(vector<string>, int*);
 vector<string> readNumber(vector<string>);
@@ -134,6 +135,43 @@ int *storeBinaryInArray(int number, int size)
 	}
 	//return int array stored binary number
 	return binaryArray;
+}
+
+// for instruction SLL, SRL
+int *shift_Type_Concatenate(int *rt, int *rd, int *sa, int *funct)
+{
+	int* thirtyTwoBits = (int *)malloc(sizeof(int)*32);
+	for(int k = 0; k < 32; ++k){
+		thirtyTwoBits[k] = 0;
+	}
+
+	int i;
+	int j = 0;
+	j = 0;
+	for(i = 11; i < 16; ++i){
+		thirtyTwoBits[i] = rt[j];
+		++j;
+	}//store rt into binary array
+
+	j = 0;
+	for(i = 16; i < 21; ++i){
+		thirtyTwoBits[i] = rd[j];
+		++j;
+	}//store rd into binary array
+
+	j = 0;
+	for(i = 21; i < 26; ++i){
+		thirtyTwoBits[i] = sa[j];
+		++j;
+	}//store sa into binary array
+
+	j = 0;
+	for(i = 26; i < 32; ++i){
+		thirtyTwoBits[i] = funct[j];
+		++j;
+	}//store funct into binary array
+
+	return thirtyTwoBits;
 }
 
 //for instruction MULT, MULTU, DIV, DIVU
@@ -349,6 +387,7 @@ string transvertInstruction(string oneLine)
 	int *rs;
 	int *rd;
 	int *rt;
+	int *sa;
 	int *thirtyTwoBits;
 	string machineInstruction;
 	string tempResult;
@@ -481,19 +520,49 @@ string transvertInstruction(string oneLine)
 		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "SLT"){
-		cout<<"Instruction SLT"<<endl;
+		cout<<"Instruction SLT start"<<endl;
+		numberList = readNumber(result);
+		funct = getPartialInstruction("101010", 6);// OR is 10 1010
+		machineInstruction = R_Type_Instruction(numberList,funct);
 	}
 	else if(result[0] == "SLTI"){
 		cout<<"Instruction SLTI"<<endl;
+		numberList = readNumber(result);
+		op = getPartialInstruction("001010", 6);// ORI is 00 1010
+		machineInstruction = I_Type_Instruction(numberList,op);
 	}
 	else if(result[0] == "SLL"){
 		cout<<"Instruction SLL"<<endl;
+		numberList = readNumber(result);
+		rd = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		sa = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("000000", 6);// SLL is 00 0000
+		thirtyTwoBits = shift_Type_Concatenate(rt, rd, sa, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "SRL"){
 		cout<<"Instruction SRL"<<endl;
+		numberList = readNumber(result);
+		rd = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		sa = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("000010", 6);// SRL is 00 0010
+		thirtyTwoBits = shift_Type_Concatenate(rt, rd, sa, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "SRA"){
 		cout<<"Instruction SRA"<<endl;
+		numberList = readNumber(result);
+		rd = getPartialInstruction(numberList[0], 5);
+		rt = getPartialInstruction(numberList[1], 5);
+		sa = getPartialInstruction(numberList[2], 5);
+		funct = getPartialInstruction("000011", 6);// SRA is 00 0011
+		thirtyTwoBits = shift_Type_Concatenate(rt, rd, sa, funct);
+		printArray(thirtyTwoBits,32);
+		machineInstruction = binaryToHex(thirtyTwoBits);
 	}
 	else if(result[0] == "LW"){
 		cout<<"Instruction LW"<<endl;
