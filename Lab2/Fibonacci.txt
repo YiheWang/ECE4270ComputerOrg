@@ -1,2 +1,37 @@
-ADDI $5, $0, 255
-ADD $7, $6, $6
+LUI $1, 0
+ORI $2, $1, 10
+SYSCALL
+ADD $4, $2, $0
+JAL 52
+ADD $5, $2, $0
+LUI $1, 0
+ORI $2, $1, 4
+SYSCALL
+LUI $1, 0
+ORI $2, $1, 1
+ADD $4, $5, $0
+SYSCALL
+LUI $1, 0
+ORI $2, $1, 10
+SYSCALL
+ADDI $1D, $1D, -C
+SW $1F, 8($1D)
+SW $10, 4($1D)
+SW $11, 0($1D)
+ADD $10, $4, $0
+LUI $1, 1 
+ORI $2, $1, 1
+SUB $10,$10, 2
+BLEZ $10, 28 
+ADDI $4, $10, -1 
+JAL 40
+ADD $11, $2, $0 
+ADDI $4, $10, -2 
+JAL 52
+ADD $2, $11, $2
+LW $1F, 8($1D)
+LW $10, 4($1D)
+LW $11, 0($1D)
+ADDI $1D, $1D, C
+JR $1F
+
