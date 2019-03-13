@@ -327,6 +327,132 @@ void handle_pipeline()
 void WB()
 {
 	/*IMPLEMENT THIS*/
+	INSTRUCTION_COUNT++;
+	uint32_t opcode;
+	uint32_t funct;
+	uint32_t rd;
+	opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+	funct = MEM_WB.IR & 0x0000003F;
+	rd = (MEM_WB.IR & 0x0000F800) >> 11;
+
+	//Different operation according to different instruction
+	if(opcode == 0x00){
+		switch(funct){
+			case 0x00: //SLL, ALU Instruction
+
+				break;
+			case 0x02: //SRL, ALU Instruction
+
+				break;
+			case 0x03: //SRA, ALU Instruction
+
+				break;
+			case 0x0C: //SYSCALL
+
+				break;
+			case 0x10: //MFHI, Load/Store Instruction
+
+				break;
+			case 0x11: //MTHI, Load/Store Instruction
+
+				break;
+			case 0x12: //MFLO, Load/Store Instruction
+
+				break;
+			case 0x13: //MTLO, Load/Store Instruction
+
+				break;
+			case 0x18: //MULT, ALU Instruction
+
+				break;
+			case 0x19: //MULTU, ALU Instruction
+
+				break;
+			case 0x1A: //DIV, ALU Instruction
+
+				break;
+			case 0x1B: //DIVU, ALU Instruction
+
+				break;
+			case 0x20: //ADD, ALU Instruction
+
+				break;
+			case 0x21: //ADDU, ALU Instruction
+
+				break;
+			case 0x22: //SUB, ALU Instruction
+
+				break;
+			case 0x23: //SUBU, ALU Instruction
+
+				break;
+			case 0x24: //AND, ALU Instruction
+
+				break;
+			case 0x25: //OR, ALU Instruction
+
+				break;
+			case 0x26: //XOR, ALU Instruction
+
+				break;
+			case 0x27: //NOR, ALU Instruction
+
+				break;
+			case 0x2A: //SLT, ALU Instruction
+
+				break;
+			default:
+				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
+				break;
+		}
+	}
+	else{
+		switch(opcode){
+			case 0x08: //ADDI, ALU Instruction
+
+				break;
+			case 0x09: //ADDIU, ALU Instruction
+
+				break;
+			case 0x0A: //SLTI, ALU Instruction
+
+				break;
+			case 0x0C: //ANDI, ALU Instruction
+
+				break;
+			case 0x0D: //ORI, ALU Instruction
+
+				break;
+			case 0x0E: //XORI, ALU Instruction
+
+				break;
+			case 0x0F: //LUI, Load/Store Instruction
+
+				break;
+			case 0x20: //LB, Load/Store Instruction
+
+				break;
+			case 0x21: //LH, Load/Store Instruction
+
+				break;
+			case 0x23: //LW, Load/Store Instruction
+
+				break;
+			case 0x28: //SB, Load/Store Instruction
+
+				break;
+			case 0x29: //SH, Load/Store Instruction
+
+				break;
+			case 0x2B: //SW, Load/Store Instruction
+
+				break;
+			default:
+				// put more things here
+				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
+				break;
+		}
+	}
 }
 
 /************************************************************/
@@ -335,6 +461,130 @@ void WB()
 void MEM()
 {
 	/*IMPLEMENT THIS*/
+	uint32_t opcode;
+	uint32_t funct;
+	opcode = (EX_MEM.IR & 0xFC000000) >> 26;
+	funct = EX_MEM.IR & 0x0000003F;
+
+	MEM_WB.IR = EX_MEM.IR;
+	//Different operation according to different instruction
+	if(opcode == 0x00){
+		switch(funct){
+			case 0x00: //SLL, ALU Instruction
+
+				break;
+			case 0x02: //SRL, ALU Instruction
+
+				break;
+			case 0x03: //SRA, ALU Instruction
+
+				break;
+			case 0x0C: //SYSCALL
+
+				break;
+			case 0x10: //MFHI, Load/Store Instruction
+
+				break;
+			case 0x11: //MTHI, Load/Store Instruction
+
+				break;
+			case 0x12: //MFLO, Load/Store Instruction
+
+				break;
+			case 0x13: //MTLO, Load/Store Instruction
+
+				break;
+			case 0x18: //MULT, ALU Instruction
+
+				break;
+			case 0x19: //MULTU, ALU Instruction
+
+				break;
+			case 0x1A: //DIV, ALU Instruction
+
+				break;
+			case 0x1B: //DIVU, ALU Instruction
+
+				break;
+			case 0x20: //ADD, ALU Instruction
+
+				break;
+			case 0x21: //ADDU, ALU Instruction
+
+				break;
+			case 0x22: //SUB, ALU Instruction
+
+				break;
+			case 0x23: //SUBU, ALU Instruction
+
+				break;
+			case 0x24: //AND, ALU Instruction
+
+				break;
+			case 0x25: //OR, ALU Instruction
+
+				break;
+			case 0x26: //XOR, ALU Instruction
+
+				break;
+			case 0x27: //NOR, ALU Instruction
+
+				break;
+			case 0x2A: //SLT, ALU Instruction
+
+				break;
+			default:
+				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
+				break;
+		}
+	}
+	else{
+		switch(opcode){
+			case 0x08: //ADDI, ALU Instruction
+
+				break;
+			case 0x09: //ADDIU, ALU Instruction
+
+				break;
+			case 0x0A: //SLTI, ALU Instruction
+
+				break;
+			case 0x0C: //ANDI, ALU Instruction
+
+				break;
+			case 0x0D: //ORI, ALU Instruction
+
+				break;
+			case 0x0E: //XORI, ALU Instruction
+
+				break;
+			case 0x0F: //LUI, Load/Store Instruction
+
+				break;
+			case 0x20: //LB, Load/Store Instruction
+
+				break;
+			case 0x21: //LH, Load/Store Instruction
+
+				break;
+			case 0x23: //LW, Load/Store Instruction
+
+				break;
+			case 0x28: //SB, Load/Store Instruction
+
+				break;
+			case 0x29: //SH, Load/Store Instruction
+
+				break;
+			case 0x2B: //SW, Load/Store Instruction
+
+				break;
+			default:
+				// put more things here
+				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
+				break;
+		}
+	}
 }
 
 /************************************************************/
