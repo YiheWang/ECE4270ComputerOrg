@@ -343,6 +343,130 @@ void MEM()
 void EX()
 {
 	/*IMPLEMENT THIS*/
+	uint32_t opcode;
+	uint32_t funct;
+	opcode = (ID_EX.IR & 0xFC000000) >> 26;
+	funct = ID_EX.IR & 0x0000003F;
+
+	EX_MEM.IR = ID_EX.IR;
+	//Different operation according to different instruction
+	if(opcode == 0x00){
+		switch(funct){
+			case 0x00: //SLL, ALU Instruction
+
+				break;
+			case 0x02: //SRL, ALU Instruction
+
+				break;
+			case 0x03: //SRA, ALU Instruction
+
+				break;
+			case 0x0C: //SYSCALL
+
+				break;
+			case 0x10: //MFHI, Load/Store Instruction
+
+				break;
+			case 0x11: //MTHI, Load/Store Instruction
+
+				break;
+			case 0x12: //MFLO, Load/Store Instruction
+
+				break;
+			case 0x13: //MTLO, Load/Store Instruction
+
+				break;
+			case 0x18: //MULT, ALU Instruction
+
+				break;
+			case 0x19: //MULTU, ALU Instruction
+
+				break;
+			case 0x1A: //DIV, ALU Instruction
+
+				break;
+			case 0x1B: //DIVU, ALU Instruction
+
+				break;
+			case 0x20: //ADD, ALU Instruction
+
+				break;
+			case 0x21: //ADDU, ALU Instruction
+
+				break;
+			case 0x22: //SUB, ALU Instruction
+
+				break;
+			case 0x23: //SUBU, ALU Instruction
+
+				break;
+			case 0x24: //AND, ALU Instruction
+
+				break;
+			case 0x25: //OR, ALU Instruction
+
+				break;
+			case 0x26: //XOR, ALU Instruction
+
+				break;
+			case 0x27: //NOR, ALU Instruction
+
+				break;
+			case 0x2A: //SLT, ALU Instruction
+
+				break;
+			default:
+				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
+				break;
+		}
+	}
+	else{
+		switch(opcode){
+			case 0x08: //ADDI, ALU Instruction
+
+				break;
+			case 0x09: //ADDIU, ALU Instruction
+
+				break;
+			case 0x0A: //SLTI, ALU Instruction
+
+				break;
+			case 0x0C: //ANDI, ALU Instruction
+
+				break;
+			case 0x0D: //ORI, ALU Instruction
+
+				break;
+			case 0x0E: //XORI, ALU Instruction
+
+				break;
+			case 0x0F: //LUI, Load/Store Instruction
+
+				break;
+			case 0x20: //LB, Load/Store Instruction
+
+				break;
+			case 0x21: //LH, Load/Store Instruction
+
+				break;
+			case 0x23: //LW, Load/Store Instruction
+
+				break;
+			case 0x28: //SB, Load/Store Instruction
+
+				break;
+			case 0x29: //SH, Load/Store Instruction
+
+				break;
+			case 0x2B: //SW, Load/Store Instruction
+
+				break;
+			default:
+				// put more things here
+				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
+				break;
+		}
+	}
 }
 
 /************************************************************/
@@ -351,20 +475,12 @@ void EX()
 void ID()
 {
 	/*IMPLEMENT THIS*/
-	//uint32_t opcode;
-	//uint32_t funct;
 	uint32_t rs;
 	uint32_t rt;
-	//uint32_t rd;
-	//uint32_t sa;
 	uint32_t immediate;
 
-	//opcode = (IF_ID.IR & 0xFC000000) >> 26;
-	//funct = IF_ID.IR & 0x0000003F;
 	rs = (IF_ID.IR & 0x03E00000) >> 21;
 	rt = (IF_ID.IR & 0x001F0000) >> 16;
-	//rd = (IF_ID.IR & 0x0000F800) >> 11;
-	//sa = (IF_ID.IR & 0x000007C0) >> 6;
 	immediate = IF_ID.IR & 0x0000FFFF;// use bit mask
 
 	ID_EX.IR = IF_ID.IR;
