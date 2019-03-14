@@ -595,6 +595,9 @@ void EX()
 	/*IMPLEMENT THIS*/
 	uint32_t opcode;
 	uint32_t funct;
+	uint32_t sa;
+	uint64_t product, p1, p2;
+	sa = (ID_EX.IR & 0x000007C0) >> 6;
 	opcode = (ID_EX.IR & 0xFC000000) >> 26;
 	funct = ID_EX.IR & 0x0000003F;
 
@@ -603,17 +606,24 @@ void EX()
 	if(opcode == 0x00){
 		switch(funct){
 			case 0x00: //SLL, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.B << sa;
 				break;
 			case 0x02: //SRL, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.B >> sa;
 				break;
 			case 0x03: //SRA, ALU Instruction
-
+				if ((ID_EX.B & 0x80000000) == 1){
+					EX_MEM.ALUOutput =  ~(~ID_EX.B >> sa );
+				}
+				else{
+					EX_MEM.ALUOutput = ID_EX.B >> sa;
+				}
 				break;
-			case 0x0C: //SYSCALL
-
-				break;
+			/*case 0x0C: //SYSCALL
+				if(CURRENT_STATE.REGS[2] == 0xa){
+					RUN_FLAG = FALSE;
+				}
+				break;*/
 			case 0x10: //MFHI, Load/Store Instruction
 
 				break;
@@ -627,43 +637,75 @@ void EX()
 
 				break;
 			case 0x18: //MULT, ALU Instruction
-
+				if ((ID_EX.A & 0x80000000) == 0x80000000){
+					p1 = 0xFFFFFFFF00000000 | ID_EX.A;
+				}else{
+					p1 = 0x00000000FFFFFFFF & ID_EX.A;
+				}
+				if ((ID_EX.B & 0x80000000) == 0x80000000){
+					p2 = 0xFFFFFFFF00000000 | ID_EX.B;
+				}else{
+					p2 = 0x00000000FFFFFFFF & ID_EX.B;
+				}
+				product = p1 * p2;
+				EX_MEM.LO = (product & 0X00000000FFFFFFFF);
+				EX_MEM.HI = (product & 0XFFFFFFFF00000000)>>32;
 				break;
 			case 0x19: //MULTU, ALU Instruction
-
+				product = (uint64_t)ID_EX.A * (uint64_t)ID_EX.B;
+				EX_MEM.LO = (product & 0X00000000FFFFFFFF);
+				EX_MEM.HI = (product & 0XFFFFFFFF00000000)>>32;
 				break;
 			case 0x1A: //DIV, ALU Instruction
-
+				if(ID_EX.B != 0){
+					EX_MEM.LO = (int32_t)ID_EX.A / (int32_t)ID_EX.B;
+					EX_MEM.HI = (int32_t)ID_EX.A % (int32_t)ID_EX.B;
+				}
 				break;
 			case 0x1B: //DIVU, ALU Instruction
-
+				if(ID_EX.B != 0){
+					EX_MEM.LO = ID_EX.A / ID_EX.B;
+					EX_MEM.HI = ID_EX.A % ID_EX.B;
+				}
 				break;
 			case 0x20: //ADD, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
 
 				break;
 			case 0x21: //ADDU, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
 
 				break;
 			case 0x22: //SUB, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
 
 				break;
 			case 0x23: //SUBU, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
 
 				break;
 			case 0x24: //AND, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A & ID_EX.B;
 
 				break;
 			case 0x25: //OR, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A | ID_EX.B;
 
 				break;
 			case 0x26: //XOR, ALU Instruction
+				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.B;
 
 				break;
 			case 0x27: //NOR, ALU Instruction
-
+				EX_MEM.ALUOutput = ~(ID_EX.A | ID_EX.B);
 				break;
 			case 0x2A: //SLT, ALU Instruction
-
+				if(ID_EX.A < ID_EX.B){
+					EX_MEM.ALUOutput = 0x1;
+				}
+				else{
+					EX_MEM.ALUOutput = 0x0;
+				}
 				break;
 			default:
 				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
@@ -673,22 +715,27 @@ void EX()
 	else{
 		switch(opcode){
 			case 0x08: //ADDI, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF));
 				break;
 			case 0x09: //ADDIU, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF));
 				break;
 			case 0x0A: //SLTI, ALU Instruction
-
+				if ( (  (int32_t)ID_EX.A - (int32_t)( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF))) < 0){
+					EX_MEM.ALUOutput = 0x1;
+				}
+				else{
+					EX_MEM.ALUOutput = 0x0;
+				}
 				break;
 			case 0x0C: //ANDI, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A & (ID_EX.imm & 0x0000FFFF);
 				break;
 			case 0x0D: //ORI, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A | (ID_EX.imm & 0x0000FFFF);
 				break;
 			case 0x0E: //XORI, ALU Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A ^ (ID_EX.imm & 0x0000FFFF);
 				break;
 			case 0x0F: //LUI, Load/Store Instruction
 
