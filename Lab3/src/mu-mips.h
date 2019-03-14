@@ -53,6 +53,8 @@ typedef struct CPU_Pipeline_Reg_Struct{
 	uint32_t imm;
 	uint32_t ALUOutput;
 	uint32_t LMD;
+	uint32_t LO;
+	uint32_t HI;
 
 } CPU_Pipeline_Reg;
 
@@ -102,4 +104,5 @@ void IF();/*IMPLEMENT THIS*/
 void show_pipeline();/*IMPLEMENT THIS*/
 void initialize();
 void print_program(); /*IMPLEMENT THIS*/
+void print_instruction(uint32_t);
 
