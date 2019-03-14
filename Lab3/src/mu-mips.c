@@ -471,17 +471,17 @@ void MEM()
 	if(opcode == 0x00){
 		switch(funct){
 			case 0x00: //SLL, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x02: //SRL, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x03: //SRA, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
-			case 0x0C: //SYSCALL
+			/*case 0x0C: //SYSCALL
 
-				break;
+				break;*/
 			case 0x10: //MFHI, Load/Store Instruction
 
 				break;
@@ -495,43 +495,43 @@ void MEM()
 
 				break;
 			case 0x18: //MULT, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x19: //MULTU, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x1A: //DIV, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x1B: //DIVU, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x20: //ADD, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x21: //ADDU, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x22: //SUB, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x23: //SUBU, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x24: //AND, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x25: //OR, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x26: //XOR, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x27: //NOR, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x2A: //SLT, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			default:
 				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
@@ -541,22 +541,22 @@ void MEM()
 	else{
 		switch(opcode){
 			case 0x08: //ADDI, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x09: //ADDIU, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x0A: //SLTI, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x0C: //ANDI, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x0D: //ORI, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x0E: //XORI, ALU Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x0F: //LUI, Load/Store Instruction
 
