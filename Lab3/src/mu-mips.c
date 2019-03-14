@@ -847,43 +847,43 @@ void show_pipeline(){
 	print_instruction(CURRENT_STATE.PC);
 
 	printf("IF_ID.IR:    ");
-	print_instruction(IF_ID.IR);
+	printf("%x", IF_ID.IR);
 
 	printf("IF_ID.PC:    ");
-	print_instruction(IF_ID.PC);
+	printf("%x", IF_ID.PC);
 
 	printf("ID_EX.IR:    ");
-	print_instruction(ID_EX.IR);
+	printf("%x", ID_EX.IR);
 
 	printf("ID_EX.A:    ");
-	print_instruction(ID_EX.A);
+	printf("%x", ID_EX.A);
 
 	printf("ID_EX.B:    ");
-	print_instruction(ID_EX.B);
+	printf("%x", ID_EX.B);
 
 	printf("ID_EX.imm:    ");
-	print_instruction(ID_EX.imm);
+	printf("%x", ID_EX.imm);
 
 	printf("EX_MEM.IR:    ");
-	print_instruction(EX_MEM.IR);
+	printf("%x", EX_MEM.IR);
 
 	printf("EX_MEM.A:    ");
-	print_instruction(EX_MEM.A);
+	printf("%x", EX_MEM.A);
 
 	printf("EX_MEM.B:    ");
-	print_instruction(EX_MEM.B);
+	printf("%x", EX_MEM.B);
 
 	printf("EX_MEM.ALUOutput:    ");
-	print_instruction(EX_MEM.ALUOutput);
+	printf("%x", EX_MEM.ALUOutput);
 
 	printf("MEM_WB.IR:    ");
-	print_instruction(MEM_WB.IR);
+	printf("%x", MEM_WB.IR);
 
 	printf("MEM_WB.ALUOutput:    ");
-	print_instruction(MEM_WB.ALUOutput);
+	printf("%x", MEM_WB.ALUOutput);
 
 	printf("MEM_WB.LMD:    ");
-	print_instruction(MEM_WB.LMD);
+	printf("%x", MEM_WB.LMD);
 }
 
 void print_instruction(uint32_t addr){
