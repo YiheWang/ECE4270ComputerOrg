@@ -60,6 +60,7 @@ void mem_write_32(uint32_t address, uint32_t value)
 			MEM_REGIONS[i].mem[offset+2] = (value >> 16) & 0xFF;
 			MEM_REGIONS[i].mem[offset+1] = (value >>  8) & 0xFF;
 			MEM_REGIONS[i].mem[offset+0] = (value >>  0) & 0xFF;
+			printf()
 		}
 	}
 }
@@ -438,7 +439,10 @@ void WB()
 			case 0x20: //LB, Load/Store Instruction
 				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
-			case 0x21: //LH, Load/Store Instruction
+			case 0x21: //LH, Load/Store InstructionEM stage
+ALU calculated insided stage 14 
+ALU output insided stage 8 
+
 				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			case 0x23: //LW, Load/Store Instruction
@@ -471,12 +475,14 @@ void MEM()
 	uint32_t funct;
 	uint32_t data;
 	opcode = (EX_MEM.IR & 0xFC000000) >> 26;
+	opcode = opcode & 0x000000CF;
 	funct = EX_MEM.IR & 0x0000003F;
 
 	MEM_WB.IR = EX_MEM.IR;
 	//MEM_WB.LO = EX_MEM.LO;
 	//MEM_WB.HI = EX_MEM.HI;
 	//Different operation according to different instruction
+	printf("MEM %d\n",opcode);
 	if(opcode == 0x00){
 		switch(funct){
 			case 0x00: //SLL, ALU Instruction
@@ -541,14 +547,15 @@ void MEM()
 				break;
 			case 0x2A: //SLT, ALU Instruction
 				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-				break;
+				break;imm
 			default:
 				printf("Instruction at 0x%x is not implemented!\n", CURRENT_STATE.PC);
 				break;
 		}
 	}
-	else{
+	else{			printf(" opcode %d inside else\n",opcode);
 		switch(opcode){
+
 			case 0x08: //ADDI, ALU Instruction
 				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
@@ -592,6 +599,7 @@ void MEM()
 				mem_write_32(EX_MEM.ALUOutput, data);
 				break;
 			case 0x2B: //SW, Load/Store Instruction
+				printf("This is SW instruction\n");
 				mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
 				break;
 			default:
@@ -600,6 +608,7 @@ void MEM()
 				break;
 		}
 	}
+	printf("MEM stage\n");
 }
 
 /************************************************************/
@@ -747,7 +756,10 @@ void EX()
 			case 0x0C: //ANDI, ALU Instruction
 				EX_MEM.ALUOutput = ID_EX.A & (ID_EX.imm & 0x0000FFFF);
 				break;
-			case 0x0D: //ORI, ALU Instruction
+			case 0x0D: //ORI, ALU InstructionEM stage
+ALU calculated insided stage 14 
+ALU output insided stage 8 
+
 				EX_MEM.ALUOutput = ID_EX.A | (ID_EX.imm & 0x0000FFFF);
 				break;
 			case 0x0E: //XORI, ALU Instruction
@@ -772,7 +784,11 @@ void EX()
 				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			case 0x2B: //SW, Load/Store Instruction
+				printf("ALU calculated insided stage %x \n",EX_MEM.B);
 				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
+ 				printf("ALU output insided stage %x \n",EX_MEM.ALUOutput);
+                                mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
+			
 				break;
 			default:
 				// put more things here
@@ -808,7 +824,10 @@ void ID()
 void IF()
 {
 	IF_ID.IR = mem_read_32(CURRENT_STATE.PC);
+
 	NEXT_STATE.PC = CURRENT_STATE.PC + 4;//correct
+	IF_ID.PC = NEXT_STATE.PC;	
+	//IF_ID.PC = CURRENT_STATE.PC + 4;
 	/*IMPLEMENT THIS*/
 }
 
@@ -843,47 +862,47 @@ void print_program(){
 /************************************************************/
 void show_pipeline(){
 	/*IMPLEMENT THIS*/
-	printf("Current PC:    ");
-	print_instruction(CURRENT_STATE.PC);
+	printf("\nCurrent PC:    ");
+	print_instruction(CURRENT_STATE.PC-4);
 
-	printf("IF_ID.IR:    ");
+	printf("\nIF_ID.IR:    ");
 	printf("%x", IF_ID.IR);
 
-	printf("IF_ID.PC:    ");
+	printf("\nIF_ID.PC:    ");
 	printf("%x", IF_ID.PC);
 
-	printf("ID_EX.IR:    ");
+	printf("\nID_EX.IR:    ");
 	printf("%x", ID_EX.IR);
 
-	printf("ID_EX.A:    ");
+	printf("\nID_EX.A:    ");
 	printf("%x", ID_EX.A);
 
-	printf("ID_EX.B:    ");
+	printf("\nID_EX.B:    ");
 	printf("%x", ID_EX.B);
 
-	printf("ID_EX.imm:    ");
+	printf("\nID_EX.imm:    ");
 	printf("%x", ID_EX.imm);
 
-	printf("EX_MEM.IR:    ");
+	printf("\nEX_MEM.IR:    ");
 	printf("%x", EX_MEM.IR);
 
-	printf("EX_MEM.A:    ");
+	printf("\nEX_MEM.A:    ");
 	printf("%x", EX_MEM.A);
 
-	printf("EX_MEM.B:    ");
+	printf("\nEX_MEM.B:    ");
 	printf("%x", EX_MEM.B);
 
-	printf("EX_MEM.ALUOutput:    ");
+	printf("\nEX_MEM.ALUOutput:    ");
 	printf("%x", EX_MEM.ALUOutput);
 
-	printf("MEM_WB.IR:    ");
+	printf("\nMEM_WB.IR:    ");
 	printf("%x", MEM_WB.IR);
 
-	printf("MEM_WB.ALUOutput:    ");
+	printf("\nMEM_WB.ALUOutput:    ");
 	printf("%x", MEM_WB.ALUOutput);
 
-	printf("MEM_WB.LMD:    ");
-	printf("%x", MEM_WB.LMD);
+	printf("\nMEM_WB.LMD:    ");
+	printf("%x\n", MEM_WB.LMD);
 }
 
 void print_instruction(uint32_t addr){
