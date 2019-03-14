@@ -445,13 +445,13 @@ void WB()
 				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			case 0x28: //SB, Load/Store Instruction
-
+				// do nothing
 				break;
 			case 0x29: //SH, Load/Store Instruction
-
+				// do nothing
 				break;
 			case 0x2B: //SW, Load/Store Instruction
-
+				// do nothing
 				break;
 			default:
 				// put more things here
@@ -582,13 +582,17 @@ void MEM()
 				MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput);
 				break;
 			case 0x28: //SB, Load/Store Instruction
-
+				data = mem_read_32(EX_MEM.ALUOutput);
+				data = (data & 0xFFFFFF00) | (EX_MEM.B & 0x000000FF);
+				mem_write_32(EX_MEM.ALUOutput, data);
 				break;
 			case 0x29: //SH, Load/Store Instruction
-
+				data = mem_read_32(EX_MEM.ALUOutput);
+				data = (data & 0xFFFF0000) | (EX_MEM.B & 0x0000FFFF);
+				mem_write_32(EX_MEM.ALUOutput, data);
 				break;
 			case 0x2B: //SW, Load/Store Instruction
-
+				mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
 				break;
 			default:
 				// put more things here
