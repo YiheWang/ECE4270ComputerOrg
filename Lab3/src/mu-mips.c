@@ -353,16 +353,16 @@ void WB()
 
 				break;*/
 			case 0x10: //MFHI, Load/Store Instruction
-
+				NEXT_STATE.REGS[rd] = MEM_WB.HI;
 				break;
 			case 0x11: //MTHI, Load/Store Instruction
-
+				NEXT_STATE.HI = MEM_WB.ALUOutput;
 				break;
 			case 0x12: //MFLO, Load/Store Instruction
-
+				NEXT_STATE.REGS[rd] = MEM_WB.LO;
 				break;
 			case 0x13: //MTLO, Load/Store Instruction
-
+				NEXT_STATE.LO = MEM_WB.ALUOutput;
 				break;
 			case 0x18: //MULT, ALU Instruction
 				NEXT_STATE.LO = MEM_WB.LO;
@@ -473,8 +473,8 @@ void MEM()
 	funct = EX_MEM.IR & 0x0000003F;
 
 	MEM_WB.IR = EX_MEM.IR;
-	MEM_WB.LO = EX_MEM.LO;
-	MEM_WB.HI = EX_MEM.HI;
+	//MEM_WB.LO = EX_MEM.LO;
+	//MEM_WB.HI = EX_MEM.HI;
 	//Different operation according to different instruction
 	if(opcode == 0x00){
 		switch(funct){
@@ -491,16 +491,16 @@ void MEM()
 
 				break;*/
 			case 0x10: //MFHI, Load/Store Instruction
-
+				MEM_WB.HI = EX_MEM.HI;
 				break;
 			case 0x11: //MTHI, Load/Store Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x12: //MFLO, Load/Store Instruction
-
+				MEM_WB.LO = EX_MEM.LO;
 				break;
 			case 0x13: //MTLO, Load/Store Instruction
-
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x18: //MULT, ALU Instruction
 				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
@@ -610,6 +610,7 @@ void EX()
 	funct = ID_EX.IR & 0x0000003F;
 
 	EX_MEM.IR = ID_EX.IR;
+	EX_MEM.B = ID_EX.B;
 	//Different operation according to different instruction
 	if(opcode == 0x00){
 		switch(funct){
@@ -633,16 +634,16 @@ void EX()
 				}
 				break;*/
 			case 0x10: //MFHI, Load/Store Instruction
-
+				EX_MEM.HI = ID_EX.HI;
 				break;
 			case 0x11: //MTHI, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A;
 				break;
 			case 0x12: //MFLO, Load/Store Instruction
-
+				EX_MEM.LO = ID_EX.LO;
 				break;
 			case 0x13: //MTLO, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A;
 				break;
 			case 0x18: //MULT, ALU Instruction
 				if ((ID_EX.A & 0x80000000) == 0x80000000){
