@@ -433,16 +433,16 @@ void WB()
 				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				break;
 			case 0x0F: //LUI, Load/Store Instruction
-
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			case 0x20: //LB, Load/Store Instruction
-
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			case 0x21: //LH, Load/Store Instruction
-
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			case 0x23: //LW, Load/Store Instruction
-
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				break;
 			case 0x28: //SB, Load/Store Instruction
 
@@ -469,6 +469,7 @@ void MEM()
 	/*IMPLEMENT THIS*/
 	uint32_t opcode;
 	uint32_t funct;
+	uint32_t data;
 	opcode = (EX_MEM.IR & 0xFC000000) >> 26;
 	funct = EX_MEM.IR & 0x0000003F;
 
@@ -567,16 +568,18 @@ void MEM()
 				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 				break;
 			case 0x0F: //LUI, Load/Store Instruction
-
+				MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput);
 				break;
 			case 0x20: //LB, Load/Store Instruction
-
+				data = mem_read_32(EX_MEM.ALUOutput);
+				MEM_WB.LMD = ((data & 0x000000FF) & 0x80) > 0 ? (data | 0xFFFFFF00) : (data & 0x000000FF);
 				break;
 			case 0x21: //LH, Load/Store Instruction
-
+				data = mem_read_32(EX_MEM.ALUOutput);
+				MEM_WB.LMD = ((data & 0x0000FFFF) & 0x8000) > 0 ? (data | 0xFFFF0000) : (data & 0x0000FFFF);
 				break;
 			case 0x23: //LW, Load/Store Instruction
-
+				MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput);
 				break;
 			case 0x28: //SB, Load/Store Instruction
 
@@ -747,25 +750,25 @@ void EX()
 				EX_MEM.ALUOutput = ID_EX.A ^ (ID_EX.imm & 0x0000FFFF);
 				break;
 			case 0x0F: //LUI, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.imm << 16;
 				break;
 			case 0x20: //LB, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			case 0x21: //LH, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			case 0x23: //LW, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			case 0x28: //SB, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			case 0x29: //SH, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			case 0x2B: //SW, Load/Store Instruction
-
+				EX_MEM.ALUOutput = ID_EX.A + ( (ID_EX.imm & 0x8000) > 0 ? (ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF)) ;
 				break;
 			default:
 				// put more things here
