@@ -344,11 +344,16 @@ void handle_pipeline() {
 /************************************************************/
 void WB() {
 	/*IMPLEMENT THIS*/
+	if (MEM_WB.IR == 0) {
+		return;
+	}
+
 	INSTRUCTION_COUNT++;
 	uint32_t opcode;
 	uint32_t funct;
 	uint32_t rd;
 	uint32_t rt;
+	prevInstruction = MEM_WB.IR;
 	opcode = (MEM_WB.IR & 0xFC000000) >> 26;
 	funct = MEM_WB.IR & 0x0000003F;
 	rd = (MEM_WB.IR & 0x0000F800) >> 11;
@@ -366,9 +371,13 @@ void WB() {
 		case 0x03: //SRA, ALU Instruction
 			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 			break;
-			/*case 0x0C: //SYSCALL
-
-			 break;*/
+		case 0x0C: //SYSCALL
+			if(MEM_WB.ALUOutput == 0xA){
+				RUN_FLAG = FALSE;
+				MEM_WB.ALUOutput = 0x0;
+				break;
+			}
+			break;
 		case 0x10: //MFHI, Load/Store Instruction
 			NEXT_STATE.REGS[rd] = MEM_WB.HI;
 			break;
@@ -477,6 +486,9 @@ void WB() {
 			break;
 		}
 	}
+	if(stall != 0 ) {
+		stall--;
+	}
 }
 
 /************************************************************/
@@ -495,7 +507,7 @@ void MEM() {
 	MEM_WB_RegisterRt = (MEM_WB.IR & 0x001F0000) >> 16; //reg destination (register)
 	MEM_WB_RegisterRd = (MEM_WB.IR & 0x0000F800) >> 11;
 
-	if(MEM_WB.IR == 0) {
+	if (MEM_WB.IR == 0) {
 		return;
 	}
 
@@ -514,7 +526,7 @@ void MEM() {
 			MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 			break;
 		case 0x0C: //SYSCALL
-				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
+			MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 			break;
 		case 0x10: //MFHI, Load/Store Instruction
 			MEM_WB.HI = EX_MEM.HI;
@@ -661,46 +673,39 @@ void EX() {
 			return;
 		}
 
-		if(ENABLE_FORWARDING) {
+		if (ENABLE_FORWARDING) {
 			ID_EX.A = CURRENT_STATE.REGS[ID_EX_rs];
 			ID_EX.B = CURRENT_STATE.REGS[ID_EX_rt];
 			ID_EX.imm = immediate;
 			if (forwardA == 0x10) {
-				if(((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
 					ID_EX.A = MEM_WB.LMD; // LW
-				}
-				else{
+				} else {
 					ID_EX.A = EX_MEM.ALUOutput;
 				}
-			}
-			else if (forwardB == 0x10) {
-				if(((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+			} else if (forwardB == 0x10) {
+				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
 					ID_EX.B = MEM_WB.LMD; // LW
-				}
-				else{
+				} else {
 					ID_EX.B = EX_MEM.ALUOutput;
 				}
 			}
 
 			if (forwardA == 0x01) {
-				if(((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
 					ID_EX.A = MEM_WB.LMD; //LW
-				}
-				else{
+				} else {
 					ID_EX.A = MEM_WB.ALUOutput;
 				}
-			}
-			else if (forwardB == 0x01) {
-				if(((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+			} else if (forwardB == 0x01) {
+				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
 					ID_EX.B = MEM_WB.LMD; //LW
-				}
-				else{
+				} else {
 					ID_EX.B = MEM_WB.ALUOutput;
 				}
-				if(((prevInstruction & 0xFC000000) >> 26) == 0x23) {
+				if (((prevInstruction & 0xFC000000) >> 26) == 0x23) {
 					ID_EX.B = MEM_WB.LMD;
-				}
-				else{
+				} else {
 					ID_EX.B = MEM_WB.ALUOutput;
 				}
 			}
