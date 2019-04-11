@@ -484,13 +484,21 @@ void WB() {
 /************************************************************/
 void MEM() {
 	/*IMPLEMENT THIS*/
+	MEM_WB.IR = EX_MEM.IR;
+	EX_MEM.A = ID_EX.A;
 	uint32_t opcode;
 	uint32_t funct;
 	uint32_t data;
-	opcode = (EX_MEM.IR & 0xFC000000) >> 26;
-	funct = EX_MEM.IR & 0x0000003F;
+	opcode = (MEM_WB.IR & 0xFC000000) >> 26;
+	funct = MEM_WB.IR & 0x0000003F;
 
-	MEM_WB.IR = EX_MEM.IR;
+	MEM_WB_RegisterRt = (MEM_WB.IR & 0x001F0000) >> 16; //reg destination (register)
+	MEM_WB_RegisterRd = (MEM_WB.IR & 0x0000F800) >> 11;
+
+	if(MEM_WB.IR == 0) {
+		return;
+	}
+
 	//MEM_WB.LO = EX_MEM.LO;
 	//MEM_WB.HI = EX_MEM.HI;
 	//Different operation according to different instruction
@@ -505,9 +513,9 @@ void MEM() {
 		case 0x03: //SRA, ALU Instruction
 			MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 			break;
-			/*case 0x0C: //SYSCALL
-
-			 break;*/
+		case 0x0C: //SYSCALL
+				MEM_WB.ALUOutput = EX_MEM.ALUOutput;
+			break;
 		case 0x10: //MFHI, Load/Store Instruction
 			MEM_WB.HI = EX_MEM.HI;
 			break;
@@ -605,12 +613,12 @@ void MEM() {
 		case 0x28: //SB, Load/Store Instruction
 			data = mem_read_32(EX_MEM.ALUOutput);
 			data = (data & 0xFFFFFF00) | (EX_MEM.B & 0x000000FF);
-			mem_write_32(EX_MEM.ALUOutput, data);
+			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
 			break;
 		case 0x29: //SH, Load/Store Instruction
 			data = mem_read_32(EX_MEM.ALUOutput);
 			data = (data & 0xFFFF0000) | (EX_MEM.B & 0x0000FFFF);
-			mem_write_32(EX_MEM.ALUOutput, data);
+			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
 			break;
 		case 0x2B: //SW, Load/Store Instruction
 			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
