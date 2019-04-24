@@ -633,12 +633,14 @@ void MEM() {
 		case 0x28: //SB, Load/Store Instruction
 			data = mem_read_32(EX_MEM.ALUOutput);
 			data = (data & 0xFFFFFF00) | (EX_MEM.B & 0x000000FF);
-			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
+			mem_write_32(EX_MEM.ALUOutput, data);
+			//mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
 			break;
 		case 0x29: //SH, Load/Store Instruction
 			data = mem_read_32(EX_MEM.ALUOutput);
 			data = (data & 0xFFFF0000) | (EX_MEM.B & 0x0000FFFF);
-			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
+			mem_write_32(EX_MEM.ALUOutput, data);
+			//mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
 			break;
 		case 0x2B: //SW, Load/Store Instruction
 			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
@@ -866,22 +868,26 @@ void EX() {
 				break;
 			case 0x20: //LB, Load/Store Instruction
 				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				//EX_MEM.B = ID_EX.B;
 				break;
 			case 0x21: //LH, Load/Store Instruction
 				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				//EX_MEM.B = ID_EX.B;
 				break;
 			case 0x23: //LW, Load/Store Instruction
 				EX_MEM.ALUOutput = ID_EX.A
 						+ ((ID_EX.imm & 0x8000) > 0 ?
 								(ID_EX.imm | 0xFFFF0000) :
 								(ID_EX.imm & 0x0000FFFF));
-				EX_MEM.B = ID_EX.B;
+				//EX_MEM.B = ID_EX.B;
 				break;
 			case 0x28: //SB, Load/Store Instruction
 				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				EX_MEM.B = ID_EX.B;
 				break;
 			case 0x29: //SH, Load/Store Instruction
 				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				EX_MEM.B = ID_EX.B;
 				break;
 			case 0x2B: //SW, Load/Store Instruction
 				EX_MEM.ALUOutput = ID_EX.A
