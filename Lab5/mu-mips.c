@@ -613,6 +613,10 @@ void MEM() {
 		case 0x2A: //SLT, ALU Instruction
 			MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 			break;
+		case 0x08: //JR
+			break;
+		case 0x09: //JALR
+			break;
 		default:
 			printf("Instruction at 0x%x is not implemented!\n",
 					CURRENT_STATE.PC);
@@ -670,6 +674,20 @@ void MEM() {
 			break;
 		case 0x2B: //SW, Load/Store Instruction
 			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
+			break;
+		case 0x01: //BLTZ and BGEZ
+			break;
+		case 0x02: //J
+			break;
+		case 0x03: //JAL
+			break;
+		case 0x04: //BEQ
+			break;
+		case 0x05: //BNE
+			break;
+		case 0x06: //BLEZ
+			break;
+		case 0x07: //BGTZ
 			break;
 		default:
 			// put more things here
