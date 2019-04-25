@@ -453,8 +453,8 @@ void WB() {
 		case 0x09: //JALR
 			break;
 		default:
-			printf("Instruction at 0x%x is not implemented!\n",
-					CURRENT_STATE.PC);
+			printf("Funct instruction at 0x%x is not implemented!\n",
+					funct);
 			break;
 		}
 	} else {
@@ -514,8 +514,8 @@ void WB() {
 			break;
 		default:
 			// put more things here
-			printf("Instruction at 0x%x is not implemented!\n",
-					CURRENT_STATE.PC);
+			printf("Opcode instruction at 0x%x is not implemented!\n",
+					opcode);
 			break;
 		}
 	}
@@ -618,8 +618,8 @@ void MEM() {
 		case 0x09: //JALR
 			break;
 		default:
-			printf("Instruction at 0x%x is not implemented!\n",
-					CURRENT_STATE.PC);
+			printf("Funct instruction at 0x%x is not implemented!\n",
+					funct);
 			break;
 		}
 	} else {
@@ -691,8 +691,8 @@ void MEM() {
 			break;
 		default:
 			// put more things here
-			printf("Instruction at 0x%x is not implemented!\n",
-					CURRENT_STATE.PC);
+			printf("Opcode instruction at 0x%x is not implemented!\n",
+					opcode);
 			break;
 		}
 	}
@@ -868,8 +868,8 @@ void EX() {
 			}
 			break;
 		default:
-			printf("Instruction at 0x%x is not implemented!\n",
-					CURRENT_STATE.PC);
+			printf("Funct Instruction case 0x%x is not implemented!\n",
+					funct);
 			break;
 		}
 	} else {
@@ -1019,8 +1019,8 @@ void EX() {
 			break;
 		default:
 			// put more things here
-			printf("Instruction at 0x%x is not implemented!\n",
-					CURRENT_STATE.PC);
+			printf("Opcode instruction at 0x%x is not implemented!\n",
+					opcode);
 			break;
 		}
 	}
