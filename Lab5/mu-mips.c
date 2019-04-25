@@ -1030,7 +1030,7 @@ void EX() {
 /* instruction decode (ID) pipeline stage:                                                         */
 /************************************************************/
 void ID() {
-	if (stall == 0) {
+	if (stall != 0) {
 		return;
 	}
 	if (branch == 1) {
