@@ -375,62 +375,149 @@ void WB() {
 	rd = (MEM_WB.IR & 0x0000F800) >> 11;
 	rt = (MEM_WB.IR & 0x001F0000) >> 16;
 
-	switch (opcode) {
-	case 0x00: //Reg-Reg case
-		if (funct == 0xC && MEM_WB.ALUOutput == 0xA) {
-			RUN_FLAG = FALSE;
-			MEM_WB.ALUOutput = 0x0;
-			break;
-		}
+	if (opcode == 0x00) {
 		switch (funct) {
+		case 0x00: //SLL, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x02: //SRL, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x03: //SRA, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x0C: //SYSCALL
+			if (MEM_WB.ALUOutput == 0xA) {
+				RUN_FLAG = FALSE;
+				MEM_WB.ALUOutput = 0x0;
+				break;
+			}
+			break;
+		case 0x10: //MFHI, Load/Store Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.HI;
+			break;
+		case 0x11: //MTHI, Load/Store Instruction
+			NEXT_STATE.HI = MEM_WB.ALUOutput;
+			break;
+		case 0x12: //MFLO, Load/Store Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.LO;
+			break;
+		case 0x13: //MTLO, Load/Store Instruction
+			NEXT_STATE.LO = MEM_WB.ALUOutput;
+			break;
+		case 0x18: //MULT, ALU Instruction
+			NEXT_STATE.LO = MEM_WB.LO;
+			NEXT_STATE.HI = MEM_WB.HI;
+			break;
+		case 0x19: //MULTU, ALU Instruction
+			NEXT_STATE.LO = MEM_WB.LO;
+			NEXT_STATE.HI = MEM_WB.HI;
+			break;
+		case 0x1A: //DIV, ALU Instruction
+			NEXT_STATE.LO = MEM_WB.LO;
+			NEXT_STATE.HI = MEM_WB.HI;
+			break;
+		case 0x1B: //DIVU, ALU Instruction
+			NEXT_STATE.LO = MEM_WB.LO;
+			NEXT_STATE.HI = MEM_WB.HI;
+			break;
+		case 0x20: //ADD, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x21: //ADDU, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x22: //SUB, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x23: //SUBU, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x24: //AND, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x25: //OR, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x26: //XOR, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x27: //NOR, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
+		case 0x2A: //SLT, ALU Instruction
+			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			break;
 		case 0x08: //JR
 			break;
 		case 0x09: //JALR
 			break;
-		case 0x11: //MTHI
-			break;
-		case 0x13:
-			break;
-		case 0x19: //MULTU
-			break;
-		case 0x1B:
-			break; //DIVU
 		default:
-			NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+			printf("Instruction at 0x%x is not implemented!\n",
+					CURRENT_STATE.PC);
+			break;
 		}
-		break;
-	case 0x01: //BLTZ and BGEZ
-		break;
-	case 0x02: //J
-		break;
-	case 0x03: //JAL
-		break;
-	case 0x04: //BEQ
-		break;
-	case 0x05: //BNE
-		break;
-	case 0x06: //BLEZ
-		break;
-	case 0x07: //BGTZ
-		break;
-	case 0x20: //LB
-		NEXT_STATE.REGS[rt] = MEM_WB.LMD;
-		break;
-	case 0x21: //LH
-		NEXT_STATE.REGS[rt] = MEM_WB.LMD;
-		break;
-	case 0x23: //LW
-		NEXT_STATE.REGS[rt] = MEM_WB.LMD;
-		break;
-	case 0x2B: //SW
-		break;
-	case 0x29: //SH
-		break;
-	case 0x28: //SB
-		break;
-	default: //Reg-Imm
-		NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-		break;
+	} else {
+		switch (opcode) {
+		case 0x08: //ADDI, ALU Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			break;
+		case 0x09: //ADDIU, ALU Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			break;
+		case 0x0A: //SLTI, ALU Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			break;
+		case 0x0C: //ANDI, ALU Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			break;
+		case 0x0D: //ORI, ALU Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			break;
+		case 0x0E: //XORI, ALU Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			break;
+		case 0x0F: //LUI, Load/Store Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+			break;
+		case 0x20: //LB, Load/Store Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+			break;
+		case 0x21: //LH, Load/Store Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+			break;
+		case 0x23: //LW, Load/Store Instruction
+			NEXT_STATE.REGS[rt] = MEM_WB.LMD;
+			break;
+		case 0x28: //SB, Load/Store Instruction
+			// do nothing
+			break;
+		case 0x29: //SH, Load/Store Instruction
+			// do nothing
+			break;
+		case 0x2B: //SW, Load/Store Instruction
+			// do nothing
+			break;
+		case 0x01: //BLTZ and BGEZ
+			break;
+		case 0x02: //J
+			break;
+		case 0x03: //JAL
+			break;
+		case 0x04: //BEQ
+			break;
+		case 0x05: //BNE
+			break;
+		case 0x06: //BLEZ
+			break;
+		case 0x07: //BGTZ
+			break;
+		default:
+			// put more things here
+			printf("Instruction at 0x%x is not implemented!\n",
+					CURRENT_STATE.PC);
+			break;
+		}
 	}
 	if (stall != 0) {
 		stall--;
