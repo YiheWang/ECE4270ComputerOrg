@@ -453,8 +453,7 @@ void WB() {
 		case 0x09: //JALR
 			break;
 		default:
-			printf("Funct instruction at 0x%x is not implemented!\n",
-					funct);
+			printf("Funct instruction at 0x%x is not implemented!\n", funct);
 			break;
 		}
 	} else {
@@ -514,8 +513,7 @@ void WB() {
 			break;
 		default:
 			// put more things here
-			printf("Opcode instruction at 0x%x is not implemented!\n",
-					opcode);
+			printf("Opcode instruction at 0x%x is not implemented!\n", opcode);
 			break;
 		}
 	}
@@ -618,8 +616,7 @@ void MEM() {
 		case 0x09: //JALR
 			break;
 		default:
-			printf("Funct instruction at 0x%x is not implemented!\n",
-					funct);
+			printf("Funct instruction at 0x%x is not implemented!\n", funct);
 			break;
 		}
 	} else {
@@ -691,8 +688,7 @@ void MEM() {
 			break;
 		default:
 			// put more things here
-			printf("Opcode instruction at 0x%x is not implemented!\n",
-					opcode);
+			printf("Opcode instruction at 0x%x is not implemented!\n", opcode);
 			break;
 		}
 	}
@@ -786,13 +782,13 @@ void EX() {
 			EX_MEM.ALUOutput = 0xA;
 			break;
 		case 0x10: //MFHI, Load/Store Instruction
-			EX_MEM.HI = ID_EX.HI;
+			EX_MEM.HI = CURRENT_STATE.HI;
 			break;
 		case 0x11: //MTHI, Load/Store Instruction
 			EX_MEM.ALUOutput = ID_EX.A;
 			break;
 		case 0x12: //MFLO, Load/Store Instruction
-			EX_MEM.LO = ID_EX.LO;
+			EX_MEM.LO = CURRENT_STATE.LO;
 			break;
 		case 0x13: //MTLO, Load/Store Instruction
 			EX_MEM.ALUOutput = ID_EX.A;
@@ -867,9 +863,17 @@ void EX() {
 				EX_MEM.ALUOutput = 0x0;
 			}
 			break;
+		case 0x08: //JR
+			CURRENT_STATE.PC = ID_EX.A;
+			branch = 1;
+			break;
+		case 0x09: //JALR
+			CURRENT_STATE.PC = ID_EX.A;
+			NEXT_STATE.REGS[31] = ID_EX.PC;
+			branch = 1;
+			break;
 		default:
-			printf("Funct Instruction case 0x%x is not implemented!\n",
-					funct);
+			printf("Funct Instruction case 0x%x is not implemented!\n", funct);
 			break;
 		}
 	} else {
@@ -1019,8 +1023,7 @@ void EX() {
 			break;
 		default:
 			// put more things here
-			printf("Opcode instruction at 0x%x is not implemented!\n",
-					opcode);
+			printf("Opcode instruction at 0x%x is not implemented!\n", opcode);
 			break;
 		}
 	}
