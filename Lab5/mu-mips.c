@@ -664,250 +664,326 @@ void MEM() {
 /* execution (EX) pipeline stage:                                                                          */
 /************************************************************/
 void EX() {
-	if (stall == 0) {
-		/*IMPLEMENT THIS*/
-		EX_MEM.IR = ID_EX.IR;
-		uint32_t opcode;
-		uint32_t funct;
-		uint32_t sa;
-		uint32_t rt;
-		uint32_t rd;
-		uint32_t immediate;
-		uint64_t product, p1, p2;
-		sa = (EX_MEM.IR & 0x000007C0) >> 6;
-		opcode = (EX_MEM.IR & 0xFC000000) >> 26;
-		funct = EX_MEM.IR & 0x0000003F;
-		rt = (EX_MEM.IR & 0x001F0000) >> 16;
-		rd = (EX_MEM.IR & 0x0000F800) >> 11;
-		immediate = EX_MEM.IR & 0x0000FFFF;
+	/*IMPLEMENT THIS*/
+	EX_MEM.IR = ID_EX.IR;
+	uint32_t opcode;
+	uint32_t funct;
+	uint32_t sa;
+	uint32_t rt;
+	uint32_t rd;
+	uint32_t immediate;
+	uint64_t product, p1, p2;
+	sa = (EX_MEM.IR & 0x000007C0) >> 6;
+	opcode = (EX_MEM.IR & 0xFC000000) >> 26;
+	funct = EX_MEM.IR & 0x0000003F;
+	rt = (EX_MEM.IR & 0x001F0000) >> 16;
+	rd = (EX_MEM.IR & 0x0000F800) >> 11;
+	immediate = EX_MEM.IR & 0x0000FFFF;
 
-		//EX_MEM.B = ID_EX.B;
+	//EX_MEM.B = ID_EX.B;
 
-		EX_MEM_RegisterRt = rt;
-		EX_MEM_RegisterRd = rd;
-		if (EX_MEM.IR == 0) {
-			return;
-		}
+	EX_MEM_RegisterRt = rt;
+	EX_MEM_RegisterRd = rd;
+	if (EX_MEM.IR == 0) {
+		return;
+	}
 
-		if (ENABLE_FORWARDING) {
-			ID_EX.A = CURRENT_STATE.REGS[ID_EX_rs];
-			ID_EX.B = CURRENT_STATE.REGS[ID_EX_rt];
-			ID_EX.imm = immediate;
-			if (forwardA == 0x10) {
-				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
-					ID_EX.A = MEM_WB.LMD; // LW
-				} else {
-					ID_EX.A = EX_MEM.ALUOutput;
-				}
-			} else if (forwardB == 0x10) {
-				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
-					ID_EX.B = MEM_WB.LMD; // LW
-				} else {
-					ID_EX.B = EX_MEM.ALUOutput;
-				}
+	if (ENABLE_FORWARDING) {
+		ID_EX.A = CURRENT_STATE.REGS[ID_EX_rs];
+		ID_EX.B = CURRENT_STATE.REGS[ID_EX_rt];
+		ID_EX.imm = immediate;
+		if (forwardA == 0x10) {
+			if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+				ID_EX.A = MEM_WB.LMD; // LW
+			} else {
+				ID_EX.A = EX_MEM.ALUOutput;
 			}
-
-			if (forwardA == 0x01) {
-				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
-					ID_EX.A = MEM_WB.LMD; //LW
-				} else {
-					ID_EX.A = MEM_WB.ALUOutput;
-				}
-			} else if (forwardB == 0x01) {
-				if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
-					ID_EX.B = MEM_WB.LMD; //LW
-				} else {
-					ID_EX.B = MEM_WB.ALUOutput;
-				}
-				if (((prevInstruction & 0xFC000000) >> 26) == 0x23) {
-					ID_EX.B = MEM_WB.LMD;
-				} else {
-					ID_EX.B = MEM_WB.ALUOutput;
-				}
+		} else if (forwardB == 0x10) {
+			if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+				ID_EX.B = MEM_WB.LMD; // LW
+			} else {
+				ID_EX.B = EX_MEM.ALUOutput;
 			}
 		}
-		forwardA = 0x00;
-		forwardB = 0x00; //reset
 
-		//Different operation according to different instruction
-		if (opcode == 0x00) {
-			switch (funct) {
-			case 0x00: //SLL, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.B << sa;
-				break;
-			case 0x02: //SRL, ALU Instruction
+		if (forwardA == 0x01) {
+			if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+				ID_EX.A = MEM_WB.LMD; //LW
+			} else {
+				ID_EX.A = MEM_WB.ALUOutput;
+			}
+		} else if (forwardB == 0x01) {
+			if (((MEM_WB.IR & 0xFC000000) >> 26) == 0x23) {
+				ID_EX.B = MEM_WB.LMD; //LW
+			} else {
+				ID_EX.B = MEM_WB.ALUOutput;
+			}
+			if (((prevInstruction & 0xFC000000) >> 26) == 0x23) {
+				ID_EX.B = MEM_WB.LMD;
+			} else {
+				ID_EX.B = MEM_WB.ALUOutput;
+			}
+		}
+	}
+	forwardA = 0x00;
+	forwardB = 0x00; //reset
+
+	//Different operation according to different instruction
+	if (opcode == 0x00) {
+		switch (funct) {
+		case 0x00: //SLL, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.B << sa;
+			break;
+		case 0x02: //SRL, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.B >> sa;
+			break;
+		case 0x03: //SRA, ALU Instruction
+			if ((ID_EX.B & 0x80000000) == 1) {
+				EX_MEM.ALUOutput = ~(~ID_EX.B >> sa);
+			} else {
 				EX_MEM.ALUOutput = ID_EX.B >> sa;
-				break;
-			case 0x03: //SRA, ALU Instruction
-				if ((ID_EX.B & 0x80000000) == 1) {
-					EX_MEM.ALUOutput = ~(~ID_EX.B >> sa);
-				} else {
-					EX_MEM.ALUOutput = ID_EX.B >> sa;
-				}
-				break;
-			case 0x0C: //SYSCALL
-				EX_MEM.ALUOutput = 0xA;
-				break;
-			case 0x10: //MFHI, Load/Store Instruction
-				EX_MEM.HI = ID_EX.HI;
-				break;
-			case 0x11: //MTHI, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A;
-				break;
-			case 0x12: //MFLO, Load/Store Instruction
-				EX_MEM.LO = ID_EX.LO;
-				break;
-			case 0x13: //MTLO, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A;
-				break;
-			case 0x18: //MULT, ALU Instruction
-				if ((ID_EX.A & 0x80000000) == 0x80000000) {
-					p1 = 0xFFFFFFFF00000000 | ID_EX.A;
-				} else {
-					p1 = 0x00000000FFFFFFFF & ID_EX.A;
-				}
-				if ((ID_EX.B & 0x80000000) == 0x80000000) {
-					p2 = 0xFFFFFFFF00000000 | ID_EX.B;
-				} else {
-					p2 = 0x00000000FFFFFFFF & ID_EX.B;
-				}
-				product = p1 * p2;
-				EX_MEM.LO = (product & 0X00000000FFFFFFFF);
-				EX_MEM.HI = (product & 0XFFFFFFFF00000000) >> 32;
-				break;
-			case 0x19: //MULTU, ALU Instruction
-				product = (uint64_t) ID_EX.A * (uint64_t) ID_EX.B;
-				EX_MEM.LO = (product & 0X00000000FFFFFFFF);
-				EX_MEM.HI = (product & 0XFFFFFFFF00000000) >> 32;
-				break;
-			case 0x1A: //DIV, ALU Instruction
-				if (ID_EX.B != 0) {
-					EX_MEM.LO = (int32_t) ID_EX.A / (int32_t) ID_EX.B;
-					EX_MEM.HI = (int32_t) ID_EX.A % (int32_t) ID_EX.B;
-				}
-				break;
-			case 0x1B: //DIVU, ALU Instruction
-				if (ID_EX.B != 0) {
-					EX_MEM.LO = ID_EX.A / ID_EX.B;
-					EX_MEM.HI = ID_EX.A % ID_EX.B;
-				}
-				break;
-			case 0x20: //ADD, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
-
-				break;
-			case 0x21: //ADDU, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
-
-				break;
-			case 0x22: //SUB, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
-
-				break;
-			case 0x23: //SUBU, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
-
-				break;
-			case 0x24: //AND, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A & ID_EX.B;
-
-				break;
-			case 0x25: //OR, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A | ID_EX.B;
-
-				break;
-			case 0x26: //XOR, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.B;
-
-				break;
-			case 0x27: //NOR, ALU Instruction
-				EX_MEM.ALUOutput = ~(ID_EX.A | ID_EX.B);
-				break;
-			case 0x2A: //SLT, ALU Instruction
-				if (ID_EX.A < ID_EX.B) {
-					EX_MEM.ALUOutput = 0x1;
-				} else {
-					EX_MEM.ALUOutput = 0x0;
-				}
-				break;
-			default:
-				printf("Instruction at 0x%x is not implemented!\n",
-						CURRENT_STATE.PC);
-				break;
 			}
-		} else {
-			switch (opcode) {
-			case 0x08: //ADDI, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A
-						+ ((ID_EX.imm & 0x8000) > 0 ?
-								(ID_EX.imm | 0xFFFF0000) :
-								(ID_EX.imm & 0x0000FFFF));
-				break;
-			case 0x09: //ADDIU, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A
-						+ ((ID_EX.imm & 0x8000) > 0 ?
-								(ID_EX.imm | 0xFFFF0000) :
-								(ID_EX.imm & 0x0000FFFF));
-				break;
-			case 0x0A: //SLTI, ALU Instruction
-				if (((int32_t) ID_EX.A
-						- (int32_t) (
-								(ID_EX.imm & 0x8000) > 0 ?
-										(ID_EX.imm | 0xFFFF0000) :
-										(ID_EX.imm & 0x0000FFFF))) < 0) {
-					EX_MEM.ALUOutput = 0x1;
-				} else {
-					EX_MEM.ALUOutput = 0x0;
-				}
-				break;
-			case 0x0C: //ANDI, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A & (ID_EX.imm & 0x0000FFFF);
-				break;
-			case 0x0D: //ORI, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A | (ID_EX.imm & 0x0000FFFF);
-				break;
-			case 0x0E: //XORI, ALU Instruction
-				EX_MEM.ALUOutput = ID_EX.A ^ (ID_EX.imm & 0x0000FFFF);
-				break;
-			case 0x0F: //LUI, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.imm << 16;
-				break;
-			case 0x20: //LB, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
-				//EX_MEM.B = ID_EX.B;
-				break;
-			case 0x21: //LH, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
-				//EX_MEM.B = ID_EX.B;
-				break;
-			case 0x23: //LW, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A
-						+ ((ID_EX.imm & 0x8000) > 0 ?
-								(ID_EX.imm | 0xFFFF0000) :
-								(ID_EX.imm & 0x0000FFFF));
-				//EX_MEM.B = ID_EX.B;
-				break;
-			case 0x28: //SB, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
-				EX_MEM.B = ID_EX.B;
-				break;
-			case 0x29: //SH, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
-				EX_MEM.B = ID_EX.B;
-				break;
-			case 0x2B: //SW, Load/Store Instruction
-				EX_MEM.ALUOutput = ID_EX.A
-						+ ((ID_EX.imm & 0x8000) > 0 ?
-								(ID_EX.imm | 0xFFFF0000) :
-								(ID_EX.imm & 0x0000FFFF));
-				EX_MEM.B = ID_EX.B;
-				break;
-			default:
-				// put more things here
-				printf("Instruction at 0x%x is not implemented!\n",
-						CURRENT_STATE.PC);
-				break;
+			break;
+		case 0x0C: //SYSCALL
+			EX_MEM.ALUOutput = 0xA;
+			break;
+		case 0x10: //MFHI, Load/Store Instruction
+			EX_MEM.HI = ID_EX.HI;
+			break;
+		case 0x11: //MTHI, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.A;
+			break;
+		case 0x12: //MFLO, Load/Store Instruction
+			EX_MEM.LO = ID_EX.LO;
+			break;
+		case 0x13: //MTLO, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.A;
+			break;
+		case 0x18: //MULT, ALU Instruction
+			if ((ID_EX.A & 0x80000000) == 0x80000000) {
+				p1 = 0xFFFFFFFF00000000 | ID_EX.A;
+			} else {
+				p1 = 0x00000000FFFFFFFF & ID_EX.A;
 			}
+			if ((ID_EX.B & 0x80000000) == 0x80000000) {
+				p2 = 0xFFFFFFFF00000000 | ID_EX.B;
+			} else {
+				p2 = 0x00000000FFFFFFFF & ID_EX.B;
+			}
+			product = p1 * p2;
+			EX_MEM.LO = (product & 0X00000000FFFFFFFF);
+			EX_MEM.HI = (product & 0XFFFFFFFF00000000) >> 32;
+			break;
+		case 0x19: //MULTU, ALU Instruction
+			product = (uint64_t) ID_EX.A * (uint64_t) ID_EX.B;
+			EX_MEM.LO = (product & 0X00000000FFFFFFFF);
+			EX_MEM.HI = (product & 0XFFFFFFFF00000000) >> 32;
+			break;
+		case 0x1A: //DIV, ALU Instruction
+			if (ID_EX.B != 0) {
+				EX_MEM.LO = (int32_t) ID_EX.A / (int32_t) ID_EX.B;
+				EX_MEM.HI = (int32_t) ID_EX.A % (int32_t) ID_EX.B;
+			}
+			break;
+		case 0x1B: //DIVU, ALU Instruction
+			if (ID_EX.B != 0) {
+				EX_MEM.LO = ID_EX.A / ID_EX.B;
+				EX_MEM.HI = ID_EX.A % ID_EX.B;
+			}
+			break;
+		case 0x20: //ADD, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
+
+			break;
+		case 0x21: //ADDU, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
+
+			break;
+		case 0x22: //SUB, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
+
+			break;
+		case 0x23: //SUBU, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
+
+			break;
+		case 0x24: //AND, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A & ID_EX.B;
+
+			break;
+		case 0x25: //OR, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A | ID_EX.B;
+
+			break;
+		case 0x26: //XOR, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.B;
+
+			break;
+		case 0x27: //NOR, ALU Instruction
+			EX_MEM.ALUOutput = ~(ID_EX.A | ID_EX.B);
+			break;
+		case 0x2A: //SLT, ALU Instruction
+			if (ID_EX.A < ID_EX.B) {
+				EX_MEM.ALUOutput = 0x1;
+			} else {
+				EX_MEM.ALUOutput = 0x0;
+			}
+			break;
+		default:
+			printf("Instruction at 0x%x is not implemented!\n",
+					CURRENT_STATE.PC);
+			break;
+		}
+	} else {
+		switch (opcode) {
+		case 0x01:
+			if (rt == 0) { //BLTZ, Jump, branch instruction
+				if ((ID_EX.A & 0x80000000) > 0) {
+					ID_EX.imm = ID_EX.imm << 2;
+					CURRENT_STATE.PC = (ID_EX.PC
+							+ ((ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF)) - 4);
+					branch = 1;
+
+				}
+			} else if (rt == 1) { //BGEZ, Jump, branch instruction
+				if ((ID_EX.A & 0x80000000) == 0x0) {
+					ID_EX.imm = ID_EX.imm << 2;
+					CURRENT_STATE.PC = (ID_EX.PC
+							+ ((ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF)) - 4);
+					branch = 1;
+				}
+			}
+			break;
+		case 0x02: //J, Jump, branch instruction
+			CURRENT_STATE.PC = (ID_EX.PC & 0xF0000000)
+					| ((ID_EX.IR & 0x03FFFFFF) << 2);
+			branch = 1;
+			break;
+		case 0x03: //JAL, Jump, branch instruction
+			CURRENT_STATE.PC = (ID_EX.PC & 0xF0000000)
+					| ((ID_EX.IR & 0x03FFFFFF) << 2);
+			NEXT_STATE.REGS[31] = ID_EX.PC;
+			branch = 1;
+			break;
+		case 0x04: //BEQ, Jump, branch instruction
+			if (ID_EX.A == ID_EX.B) {
+				ID_EX.imm = ID_EX.imm << 2;
+				CURRENT_STATE.PC = (ID_EX.PC
+						+ ((ID_EX.imm & 0x8000) > 0 ?
+								(ID_EX.imm | 0xFFFF0000) :
+								(ID_EX.imm & 0x0000FFFF)) - 4);
+				branch = 1;
+			}
+			break;
+		case 0x05: //BNE, Jump, branch instruction
+			if (ID_EX.A != ID_EX.B) {
+				ID_EX.imm = ID_EX.imm << 2;
+				CURRENT_STATE.PC = (ID_EX.PC
+						+ ((ID_EX.imm & 0x8000) > 0 ?
+								(ID_EX.imm | 0xFFFF0000) :
+								(ID_EX.imm & 0x0000FFFF)) - 4);
+				branch = 1;
+			}
+			break;
+		case 0x06: //BLEZ, Jump, branch instruction
+			if (ID_EX.A <= 0) {
+				ID_EX.imm = ID_EX.imm << 2;
+				CURRENT_STATE.PC = (ID_EX.PC
+						+ ((ID_EX.imm & 0x8000) > 0 ?
+								(ID_EX.imm | 0xFFFF0000) :
+								(ID_EX.imm & 0x0000FFFF)) - 4);
+				branch = 1;
+			}
+			break;
+		case 0x07: //BGTZ, Jump, branch instruction
+			if (ID_EX.A > 0) {
+				ID_EX.imm = ID_EX.imm << 2;
+				CURRENT_STATE.PC = (ID_EX.PC
+						+ ((ID_EX.imm & 0x8000) > 0 ?
+								(ID_EX.imm | 0xFFFF0000) :
+								(ID_EX.imm & 0x0000FFFF)) - 4);
+				branch = 1;
+			}
+			break;
+		case 0x08: //ADDI, ALU Instruction
+			EX_MEM.ALUOutput =
+					ID_EX.A
+							+ ((ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF));
+			break;
+		case 0x09: //ADDIU, ALU Instruction
+			EX_MEM.ALUOutput =
+					ID_EX.A
+							+ ((ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF));
+			break;
+		case 0x0A: //SLTI, ALU Instruction
+			if (((int32_t) ID_EX.A
+					- (int32_t) (
+							(ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF))) < 0) {
+				EX_MEM.ALUOutput = 0x1;
+			} else {
+				EX_MEM.ALUOutput = 0x0;
+			}
+			break;
+		case 0x0C: //ANDI, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A & (ID_EX.imm & 0x0000FFFF);
+			break;
+		case 0x0D: //ORI, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A | (ID_EX.imm & 0x0000FFFF);
+			break;
+		case 0x0E: //XORI, ALU Instruction
+			EX_MEM.ALUOutput = ID_EX.A ^ (ID_EX.imm & 0x0000FFFF);
+			break;
+		case 0x0F: //LUI, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.imm << 16;
+			break;
+		case 0x20: //LB, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+			EX_MEM.B = ID_EX.B;
+			break;
+		case 0x21: //LH, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+			EX_MEM.B = ID_EX.B;
+			break;
+		case 0x23: //LW, Load/Store Instruction
+			EX_MEM.ALUOutput =
+					ID_EX.A
+							+ ((ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF));
+			//EX_MEM.B = ID_EX.B;
+			break;
+		case 0x28: //SB, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+			EX_MEM.B = ID_EX.B;
+			break;
+		case 0x29: //SH, Load/Store Instruction
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+			EX_MEM.B = ID_EX.B;
+			break;
+		case 0x2B: //SW, Load/Store Instruction
+			EX_MEM.ALUOutput =
+					ID_EX.A
+							+ ((ID_EX.imm & 0x8000) > 0 ?
+									(ID_EX.imm | 0xFFFF0000) :
+									(ID_EX.imm & 0x0000FFFF));
+			EX_MEM.B = ID_EX.B;
+			EX_MEM_RegisterRt = 0;
+			break;
+		default:
+			// put more things here
+			printf("Instruction at 0x%x is not implemented!\n",
+					CURRENT_STATE.PC);
+			break;
 		}
 	}
 }
@@ -919,7 +995,7 @@ void ID() {
 	if (stall == 0) {
 		return;
 	}
-	if(branch == 1){
+	if (branch == 1) {
 		branch = 0;
 		ID_EX.IR = 0;
 		return;
@@ -1010,13 +1086,13 @@ void ID() {
 	ID_EX.imm = immediate;
 
 	int temp_OP = ((EX_MEM.IR & 0xFC000000) >> 26);
-	if( temp_OP == 0x23 || temp_OP == 0x21 || temp_OP == 0x20) {
+	if (temp_OP == 0x23 || temp_OP == 0x21 || temp_OP == 0x20) {
 		// load case is special
-		if(stall == 0) {
+		if (stall == 0) {
 			stall = 2;
 		}
 	}
-	if(stall == 0) {
+	if (stall == 0) {
 		ID_EX.IR = IF_ID.IR;
 	} else {
 		ID_EX.IR = 0;
